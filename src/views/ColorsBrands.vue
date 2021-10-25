@@ -363,7 +363,7 @@ export default {
     },
     // validations-colors
     addColorNameIsValid() {
-      return !!this.form.color_name;
+      return !!this.form.color_name && this.form.color_name.length <= 40;
     },
     addColorCodeIsValid() {
       return (
@@ -407,7 +407,7 @@ export default {
     },
     // validations-brands
     addBrandNameIsValid() {
-      return !!this.form.brand_name;
+      return !!this.form.brand_name && this.form.brand_name.length <= 40;
     },
     editBrandNameIsValid() {
       return !!this.form.edit_brand_name;
@@ -689,6 +689,7 @@ tbody {
 tbody td {
   padding: 1.4rem;
   line-height: 1.8;
+  max-width: 12rem;
 }
 tbody:hover {
   background-color: rgb(230, 230, 230);
@@ -699,6 +700,8 @@ tbody td:nth-child(4) {
   justify-content: center;
   align-items: center;
   align-content: center;
+  margin: 0 !important;
+  max-width: 100%;
 }
 .example-color {
   display: flex;
