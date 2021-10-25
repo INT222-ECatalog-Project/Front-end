@@ -71,7 +71,6 @@
           </form>
         </div>
       </transition-group>
-      <!-- Sign Up -->
       <transition-group name="fade">
         <div class="sign-up grid" v-if="isSignUp">
           <div class="back-btn" @click="goBack">
@@ -277,26 +276,20 @@
         </div>
       </transition-group>
     </div>
-    <!-- component  popup -->
     <div class="modal" v-if="successSignUp">
       <Popup
         @closePopup="successSignUp = false"
-        :imgSrc="successImg"
         :text="successSignUpText"
-        :altText="altSuccess"
         :isTrue="true"
       />
     </div>
     <div class="modal" v-if="failedSignUp">
       <Popup
         @closePopup="failedSignUp = false"
-        :imgSrc="failedImg"
         :text="failedSignUpText"
-        :altText="altFailed"
         :isTrue="false"
       />
     </div>
-    <!-- /component  popup -->
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
     <div class="big-circle"></div>
@@ -318,22 +311,16 @@ export default {
     return {
       successSignUp: false,
       failedSignUp: false,
-      successImg: require("@/assets/images/success.png"),
       successSignUpText: "Congratulations, your account is ready!",
-      altSuccess: "Success icon",
-      failedImg: require("@/assets/images/failed.png"),
       failedSignUpText: "this username has already used",
-      altFailed: "Failed icon",
       loading: false,
       message: "",
       type: "password",
       successful: false,
       isSignUp: false,
       form: {
-        // sign-in
         sign_in_email: "",
         sign_in_password: "",
-        // sign-up
         sign_up_name: "",
         sign_up_surname: "",
         sign_up_username: "",
@@ -442,7 +429,6 @@ export default {
           (this.form.sign_up_email = ""),
           (this.form.sign_up_password = "");
         this.successSignUp = true;
-        // alert("Create Account Success🎉🎉");
       } else {
         this.failedSignUp = true;
       }
