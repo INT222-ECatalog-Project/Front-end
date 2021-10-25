@@ -33,7 +33,6 @@
               </div>
             </div>
           </div>
-
           <!-- Colors -->
           <transition name="slide-fade">
             <div class="table" v-if="isShow">
@@ -70,8 +69,19 @@
                 </div>
                 <div
                   class="example-color"
-                  :style="{ backgroundColor: form.color_code }"
-                ></div>
+                  :style="[
+                    form.color_code
+                      ? { backgroundColor: form.color_code }
+                      : { backgroundColor: '#ffffff' },
+                  ]"
+                >
+                  <i class="fas fa-eye-dropper icon"></i>
+                  <input
+                    type="color"
+                    v-model="form.color_code"
+                    :style="{ position: 'absolute' }"
+                  />
+                </div>
                 <button
                   type="submit"
                   :style="[
@@ -122,8 +132,19 @@
                 </div>
                 <div
                   class="example-color"
-                  :style="{ backgroundColor: form.edit_color_code }"
-                ></div>
+                  :style="[
+                    form.edit_color_code
+                      ? { backgroundColor: form.edit_color_code }
+                      : { backgroundColor: '#ffffff' },
+                  ]"
+                >
+                  <i class="fas fa-eye-dropper icon"></i>
+                  <input
+                    type="color"
+                    v-model="form.edit_color_code"
+                    :style="{ position: 'absolute' }"
+                  />
+                </div>
                 <button
                   type="submit"
                   class="btn btn--full"
@@ -137,7 +158,6 @@
                 </button>
               </form>
               <!-- /editForm -->
-
               <Table :ths="thsColor">
                 <tbody
                   v-for="(color, index) in getAllColors"
@@ -176,7 +196,6 @@
             </div>
           </transition>
           <!-- /Colors -->
-
           <!-- Brands -->
           <transition name="slide-fade">
             <div class="table" v-if="isShow == false">
@@ -212,7 +231,6 @@
                 </button>
               </form>
               <!-- /addBrand -->
-
               <!-- editBrand -->
               <form
                 class="color-inputs"
@@ -244,7 +262,6 @@
                 </button>
               </form>
               <!-- /editBrand -->
-              
               <Table :ths="thsBrand">
                 <tbody
                   v-for="(brand, index) in getAllBrands"
@@ -279,6 +296,18 @@
         </div>
       </div>
     </div>
+    <!-- component  popup -->
+    <div class="modal" v-if="failedToAdd">
+      <Popup
+        @closePopup="failedToAdd = false"
+        :text="
+          (form.brand_name || form.edit_brand_name || form.color_code || form.edit_color_code) +
+            ' ' +
+            failedToAddText
+        "
+        :isTrue="false"
+      />
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -287,6 +316,7 @@
 import Table from "@/components/Table.vue";
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
+import Popup from "@/components/Popup.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
   name: "ColorsBrands",
@@ -294,43 +324,32 @@ export default {
     Socials,
     Footer,
     Table,
+    Popup,
   },
   data() {
     return {
+      failedToAdd: false,
+      failedToAddText: "has already used",
       colors: [],
       thsColor: ["No", "Color Name", "Color Code", "Example"],
       thsBrand: ["No", "Brand Name"],
       isShow: true,
       isEditColor: false,
       isEditBrand: false,
-      // colors
-      // colorUrl: "http://localhost:3000/colors",
       form: {
         color_name: "",
         color_code: "",
-        // edit colors
         edit_color_name: "",
         edit_color_code: "",
-        // brands
         brand_name: "",
-        // edit brands
         edit_brand_name: "",
       },
       edit_color_id: "",
-      // edit brands
       edit_brand_id: "",
-      // brands
-      // brandsUrl: "http://localhost:3000/brands",
     };
   },
   async mounted() {
     window.scrollTo(0, 0);
-    // fetch("http://localhost:9000/api/colors")
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     this.colors = data.data;
-    //   })
-    //   .catch((err) => console.log(err.message));
     await this.getColorToStore();
     await this.getBrandsToStore();
   },
@@ -342,7 +361,6 @@ export default {
     getAllBrands() {
       return this.$store.getters.getBrands;
     },
-
     // validations-colors
     addColorNameIsValid() {
       return !!this.form.color_name;
@@ -350,7 +368,8 @@ export default {
     addColorCodeIsValid() {
       return (
         !!this.form.color_code &&
-        /^#([A-Fa-f0-9]{3}$)|([A-Fa-f0-9]{6}$)/.test(this.form.color_code) && this.form.color_code.includes("#")
+        /^#([A-Fa-f0-9]{3}$)|([A-Fa-f0-9]{6}$)/.test(this.form.color_code) &&
+        this.form.color_code.includes("#")
       );
     },
     addColorFormIsValid() {
@@ -368,6 +387,24 @@ export default {
     editColorFormIsValid() {
       return this.editColorNameIsValid && this.editColorCodeIsValid;
     },
+    checkUniqueColorCode() {
+      if (this.edit_color_id) {
+        for (let index = 0; index < this.getAllColors.length; index++) {
+          if (
+            this.getAllColors[index].color_id != this.edit_color_id &&
+            this.getAllColors[index].color_code == this.form.edit_color_code 
+          ) {
+            return true;
+          }
+        }
+      } else {
+        for (let index = 0; index < this.getAllColors.length; index++) {
+          if (this.getAllColors[index].color_code == this.form.color_code) {
+            return true;
+          }
+        }
+      }
+    },
     // validations-brands
     addBrandNameIsValid() {
       return !!this.form.brand_name;
@@ -375,23 +412,42 @@ export default {
     editBrandNameIsValid() {
       return !!this.form.edit_brand_name;
     },
+    checkUniqueBrandName() {
+      if (this.edit_brand_id != "") {
+        for (let index = 0; index < this.getAllBrands.length; index++) {
+          if (
+            this.getAllBrands[index].brand_name == this.form.edit_brand_name &&
+            this.getAllBrands[index].brand_id != this.edit_brand_id
+          ) {
+            return true;
+          }
+        }
+      } else {
+        for (let index = 0; index < this.getAllBrands.length; index++) {
+          if (this.getAllBrands[index].brand_name == this.form.brand_name) {
+            return true;
+          }
+        }
+      }
+    },
   },
 
   methods: {
     ...mapActions(["getColorToStore", "getBrandsToStore"]),
     // Colors
     addNewColor() {
-      if (this.addColorFormIsValid) {
+      if (this.addColorFormIsValid && !this.checkUniqueColorCode) {
         const newColor = {
           color_code: this.form.color_code,
           color_name: this.form.color_name,
         };
-        // this.colors.push(newColor);
-        this.$store.dispatch("addColor", newColor)
+        this.$store
+          .dispatch("addColor", newColor)
           .catch((err) => console.log(err));
         this.form.color_code = "";
         this.form.color_name = "";
       } else {
+        this.failedToAdd = true;
       }
     },
     deleteColorById(id) {
@@ -400,14 +456,13 @@ export default {
           (color) => color.color_id == id
         );
         if (index !== -1) {
-          // this.colors.splice(index, 1);
           this.getAllColors.splice(index, 1);
           this.$store.dispatch("deleteColor", id);
         }
       }
     },
     editColorById() {
-      if (this.editColorFormIsValid) {
+      if (this.editColorFormIsValid && !this.checkUniqueColorCode) {
         const index = this.getAllColors.findIndex(
           (color) => color.color_id == this.edit_color_id
         );
@@ -426,6 +481,7 @@ export default {
           this.isEditColor = false;
         }
       } else {
+        this.failedToAdd = true;
       }
     },
     toggleEditColor(id) {
@@ -438,10 +494,9 @@ export default {
       this.form.edit_color_code = this.getAllColors[index].color_code;
       this.isEditColor = !this.isEditColor;
     },
-
     // Brands
     addNewBrand() {
-      if (this.addBrandNameIsValid) {
+      if (this.addBrandNameIsValid && !this.checkUniqueBrandName) {
         const newBrand = {
           brand_name: this.form.brand_name,
         };
@@ -450,6 +505,7 @@ export default {
           .catch((err) => console.log(err));
         this.form.brand_name = "";
       } else {
+        this.failedToAdd = true;
       }
     },
     deleteBrandById(id) {
@@ -464,7 +520,7 @@ export default {
       }
     },
     editBrandById() {
-      if (this.editBrandNameIsValid) {
+      if (this.editBrandNameIsValid && !this.checkUniqueBrandName) {
         const index = this.getAllBrands.findIndex(
           (brand) => brand.brand_id == this.edit_brand_id
         );
@@ -480,6 +536,7 @@ export default {
           this.isEditBrand = false;
         }
       } else {
+        this.failedToAdd = true;
       }
     },
     toggleEditBrand(id) {
@@ -492,13 +549,20 @@ export default {
       this.isEditBrand = !this.isEditBrand;
     },
   },
-  // async created() {
-  //   await this.getColorToStore();
-  //   await this.getBrandsToStore();
-  // },
 };
 </script>
 <style scoped>
+.modal {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.25);
+  left: 0;
+  top: 0;
+  padding-top: 20rem;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
 .tertiary-header {
   text-align: start;
 }
@@ -637,14 +701,27 @@ tbody td:nth-child(4) {
   align-content: center;
 }
 .example-color {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
   width: 2.4rem;
   height: 2.4rem;
   box-shadow: inset 0 0 0 1px rgba(85, 85, 85, 0.25);
+}
+.example-color .icon {
+  width: 1rem;
+  height: 1rem;
+}
+input[type="color"] {
+  opacity: 0;
+  cursor: pointer;
 }
 .delete,
 .edit {
   cursor: pointer;
   transition: 0.2s all ease-in-out;
+  text-decoration: underline;
 }
 .delete:hover {
   color: #eb435f;
