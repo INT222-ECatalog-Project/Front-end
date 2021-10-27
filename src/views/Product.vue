@@ -276,6 +276,7 @@ export default {
   position: absolute;
   z-index: 1;
   font-size: 1.2rem;
+  margin-top: 2.4rem;
 }
 .like-icon {
   z-index: 99;

@@ -429,7 +429,7 @@ export default {
           id: 2,
           imgSrc: require("../../src/assets/images/header-img-1.jpg"),
           text: "MIX & ",
-          textBr: "MATCH",
+          textBr: "MATCH.",
           textSpan: "COMBO.",
         },
         {

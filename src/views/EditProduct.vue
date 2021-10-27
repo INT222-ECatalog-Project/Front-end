@@ -4,7 +4,7 @@
       <div class="container">
         <div class="Form">
           <div>
-            <div class="sub-heading">make it better </div>
+            <div class="sub-heading">make it better</div>
             <div class="secondary-header">Edit product</div>
           </div>
           <form @submit.prevent="editProductConfirm" action="#" class="form">
@@ -32,7 +32,12 @@
                 alt=""
                 v-if="form.edit_img !== '' && preview_img == ''"
               />
-              <img :src="preview_img" alt="" v-if="preview_img" />
+              <img
+                :src="preview_img"
+                alt=""
+                v-if="preview_img"
+                class="preview-img"
+              />
               <div class="img-name" v-if="form.edit_img != ''">
                 {{ form.edit_img }}
                 <span @click="changeImg"><i class="fas fa-times"></i></span>
@@ -229,7 +234,7 @@ export default {
       "getColorToStore",
       "getBrandsToStore",
       "getCategoriesToStore",
-      "getProductsToStore"
+      "getProductsToStore",
     ]),
     changeImg() {
       this.form.edit_img = "";
@@ -289,7 +294,12 @@ export default {
       }
     },
   },
-  computed: mapGetters(["getColors", "getBrands", "getCategories","getProducts"]),
+  computed: mapGetters([
+    "getColors",
+    "getBrands",
+    "getCategories",
+    "getProducts",
+  ]),
   computed: {
     allColors() {
       return this.$store.getters.getColors;
@@ -309,7 +319,7 @@ export default {
       return !!this.form.edit_img;
     },
     prodNameIsValid() {
-      return !!this.form.edit_name;
+      return !!this.form.edit_name && this.form.edit_name.length <= 90;
     },
     prodDescIsValid() {
       return !!this.form.edit_desc;
@@ -495,16 +505,14 @@ export default {
   border: 2px dashed #fff;
   color: white;
 }
-
+.preview-img {
+  width: 80%;
+  margin: 0 10%;
+  height: 100%;
+}
 .info-form {
   width: 100%;
-  /* height: 48rem; ตอนเเก้ responsive ให้เปลี่ยนเป็น auto แทน */
   background-color: #fff;
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* flex-wrap: wrap; responsive => no-wrap */
-  /* row-gap: 2rem; */
-  /* column-gap: 3.6rem; */
   padding: 3.6rem 4.8rem;
   box-shadow: rgba(70, 50, 50, 0.08) 0px 4px 6px -1px,
     rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
@@ -664,6 +672,9 @@ textarea:focus {
     width: 50%;
     margin: 0 25%;
     height: 36rem;
+  }
+  .info-form {
+    margin-top: 1.2rem;
   }
 }
 
