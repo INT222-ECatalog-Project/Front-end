@@ -78,7 +78,7 @@
         </div>
       </div>
     </div>
-    <div class="section section-clothes">
+    <div class="section section-clothes" id="clothes">
       <div class="container">
         <div class="sub-heading">match your style</div>
         <div class="secondary-header">Clothes</div>
@@ -92,7 +92,9 @@
                   v-for="brand in allBrands"
                   :key="brand.id"
                   :value="brand.brand_name"
-                  >{{ brand.brand_name }} ({{numberOfProductByBrand(brand.brand_name) }})</option
+                  >{{ brand.brand_name }} ({{
+                    numberOfProductByBrand(brand.brand_name)
+                  }})</option
                 >
               </select>
             </div>
@@ -120,7 +122,9 @@
                   v-for="category in allCategories"
                   :key="category.id"
                   :value="category.category_name"
-                  >{{ category.category_name }} ({{numberOfProductByCategory(category.category_name)}})</option
+                  >{{ category.category_name }} ({{
+                    numberOfProductByCategory(category.category_name)
+                  }})</option
                 >
               </select>
             </div>
@@ -162,17 +166,12 @@
           <!-- component -->
           <transition-group name="slide-fade">
             <Card
-              v-for="product in queryProducts"
+              v-for="(product, index) in queryProducts"
               :key="product.product_id"
               :product="product"
               @deleteProduct="handleDelete"
+              v-show="setPaginate(index)"
             ></Card>
-            <!-- @toggleWishList="addWishList" -->
-            <!-- :style="
-                product.isWishList == true
-                  ? { color: '#eb435f' }
-                  : { color: 'grey' }
-              " -->
             <div class="not-found" v-if="queryProducts.length == 0">
               <span
                 >{{ searchInput }} {{ selectedBrand }}
@@ -181,6 +180,17 @@
               is Not found
             </div>
           </transition-group>
+        </div>
+        <div id="pagination">
+          <div
+          :style="[ current == page_index ? {backgroundColor:'#333', color:'#fff'}:{}]"
+            class="btn-page"
+            v-for="page_index in pageTotal"
+            :key="page_index"
+            @click.prevent="updateCurrent(page_index)"
+          >
+            {{ page_index }}
+          </div>
         </div>
       </div>
     </div>
@@ -208,6 +218,8 @@ export default {
   },
   data() {
     return {
+      current: 1,
+      paginate: 19,
       options: {
         rewind: true,
         autoplay: "playing",
@@ -277,6 +289,21 @@ export default {
       );
       return categoryCount.length;
     },
+    setPaginate(i) {
+      if (this.current == 1) {
+        return i < this.paginate;
+      } else {
+        return (
+          i >= this.paginate * (this.current - 1) &&
+          i < this.current * this.paginate
+        );
+      }
+    },
+    updateCurrent(i) {
+      this.current = i;
+      let clothes =  document.querySelector("#clothes");
+      window.scrollTo(0,clothes.offsetTop);
+    },
   },
   mounted() {
     window.scrollTo(0, 0);
@@ -319,6 +346,7 @@ export default {
       return this.$store.getters.getCategories;
     },
     queryProducts() {
+      this.current = 1;
       return this.products.filter((product) => {
         return (
           product != this.handleDelete &&
@@ -330,16 +358,9 @@ export default {
         );
       });
     },
-    // queryColors() {
-    //   for (let index = 0; index < this.products.length; index++) {
-    //     for (let i = 0; i < this.products[index].colors.length; i++) {
-    //       if (this.products[index].colors[i].color_code == this.selectedColor) {
-    //         this.selectColorProduct.push(this.products[index]);
-    //       }
-    //     }
-    //   }
-    //   return this.selectColorProduct;
-    // },
+    pageTotal() {
+      return Math.ceil((this.queryProducts.length - 1) / this.paginate);
+    },
   },
   created() {
     this.getColorToStore();
@@ -592,11 +613,8 @@ export default {
 .filters-clothes {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 4.8rem;
+  gap: 0rem;
   margin: 3.6rem 0;
-  /* width: auto;
-  justify-content: space-between;
-  margin: 3.6rem 0; */
 }
 
 .filter {
@@ -707,6 +725,29 @@ select {
   font-size: 2.4rem;
   font-weight: 700;
   color: #eb435f;
+}
+#pagination{
+margin-top: 5.8rem;
+display: flex;
+justify-content: center;
+}
+.btn-page{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0.6rem;
+  font-weight: 700;
+  transition: 00.15s all ease-in-out;
+  box-shadow: inset 0 0 0 1px #333;
+}
+.btn-page:hover{
+  background-color: #333;
+  color: #fff;
 }
 
 /* below 925px */
