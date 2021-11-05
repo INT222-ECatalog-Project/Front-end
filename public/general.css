@@ -231,7 +231,7 @@ select {
   padding: 0.2rem 0.4rem;
   color: #555;
   border: none;
-  background-color: rgb(240, 240, 240);
+  background: rgb(250, 250, 250);
 }
 
 select:focus {
@@ -239,7 +239,7 @@ select:focus {
 }
 
 select option {
-  background-color: rgb(240, 240, 240);
+  background: rgb(250, 250, 250);
 }
 
 @keyframes scroll {
