@@ -221,7 +221,7 @@ export default {
 /* below 480px */
 @media (max-width: 30em) {
   .product-img {
-    height: 24rem;
+    height: 32rem;
   }
   .product-brand {
     width: 60%;
