@@ -681,7 +681,7 @@ label {
 input {
   width: 100%;
   border: none;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   height: 2.8rem;
   padding: 0 0.8rem;
   color: #333;

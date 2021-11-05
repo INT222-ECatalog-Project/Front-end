@@ -478,7 +478,7 @@ label span {
 input {
   width: auto;
   border: none;
-  background: rgba(211, 211, 211, 0.55);
+  background: rgb(250, 250, 250);
   height: 2.8rem;
   padding: 0.4rem 0.6rem;
   color: #333;
@@ -529,7 +529,7 @@ textarea {
   height: auto;
   resize: none;
   border: none;
-  background: rgba(211, 211, 211, 0.55);
+  background: rgb(250, 250, 250);
 }
 
 textarea:focus {
@@ -588,7 +588,7 @@ textarea:focus {
 @media (max-width: 53em) {
   .form {
     grid-template-columns: 1fr;
-    row-gap: 3.2rem;
+    row-gap: 2rem;
   }
   .info-form {
     margin-top: 1.2rem;
@@ -596,8 +596,14 @@ textarea:focus {
   .add-img {
     width: 50%;
     margin: 0 25%;
-    height: 36rem;
+    height: 48rem;
   }
+  .display-img img{
+        width: 50%;
+    margin: 0 25%;
+    height: 48rem;
+  }
+  
 }
 
 /* below 530px */

@@ -46,10 +46,10 @@
               >Add to cart <i class="icon fas fa-cart-plus"></i
             ></a>
             <div class="action-btn">
-              <router-link :to="{ name: 'EditProduct', params: { id: id } }"
+              <router-link v-if="isAdmin || isDeputyAdmin" :to="{ name: 'EditProduct', params: { id: id } }"
                 ><div class="btn btn--ghost">Edit</div></router-link
               >
-              <div class="btn btn--full" @click="deleteProduct(product)">
+              <div v-if="isAdmin" class="btn btn--full" @click="deleteProduct(product)">
                 Delete
               </div>
             </div>
@@ -93,6 +93,23 @@ export default {
     toggleWishList() {
       this.product.isWishList = !this.product.isWishList;
       this.$store.dispatch("setProductWishList", this.product);
+    },
+  },
+  computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser['role']==1) {
+        return true
+      }
+      return false;
+    },
+    isDeputyAdmin() {
+      if (this.currentUser && this.currentUser['role']==2) {
+        return true
+      }
+      return false;
     },
   },
   mounted() {
@@ -294,7 +311,7 @@ export default {
   }
   .img-product {
     width: 80%;
-    height: 56rem;
+    height: 62rem;
     position: relative;
     margin: 0 10%;
   }

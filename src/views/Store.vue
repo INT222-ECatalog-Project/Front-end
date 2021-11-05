@@ -98,18 +98,6 @@
                 >
               </select>
             </div>
-            <!-- <div class="text-filter">
-              <label for="colors">COLOR</label>
-              <select name="colors" id="colors" v-model="selectedColor">
-                <option value="">none</option>
-                <option
-                  v-for="color in allColors"
-                  :key="color"
-                  :value="color.color_name"
-                  >{{ color.color_name }}</option
-                >
-              </select>
-            </div> -->
             <div class="text-filter">
               <label for="product-types">PRODUCT TYPE</label>
               <select
@@ -160,7 +148,7 @@
           </div>
         </div>
         <div class="card-grid grid grid--4-cols">
-          <router-link to="/add-product" class="add-product">
+          <router-link v-if="isAdmin" to="/add-product" class="add-product">
             <i class="fas fa-plus-square"></i>
           </router-link>
           <!-- component -->
@@ -194,7 +182,7 @@
         </div>
       </div>
     </div>
-    <router-link to="/add-product" class="float-add-product">
+    <router-link v-if="isAdmin" to="/add-product" class="float-add-product">
       <i class="fas fa-plus"></i>
     </router-link>
     <Socials class="socials"></Socials>
@@ -219,7 +207,7 @@ export default {
   data() {
     return {
       current: 1,
-      paginate: 19,
+      paginate: 20,
       options: {
         rewind: true,
         autoplay: "playing",
@@ -333,6 +321,15 @@ export default {
     "getCategories",
   ]),
   computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+    },
     getAllproducts() {
       return this.$store.getters.getProducts;
     },
@@ -547,7 +544,7 @@ export default {
 .btn--ghost:hover,
 .btn--ghost:active {
   background-color: #bc364c;
-  color: #e7e3e0;
+  color: #fff;
   box-shadow: none;
 }
 
@@ -599,14 +596,14 @@ export default {
   font-size: 1.4rem;
   width: 16rem;
   box-shadow: inset 0 0 0 1px #e7e3e0;
-  color: #e7e3e0;
+  color: #fff;
   transition: 0.3s all ease-in-out;
 }
 
 .app-button .btn--ghost:hover,
 .app-button .btn--ghost:active {
   box-shadow: none;
-  color: #e7e3e0;
+  color: #fff;
   transition: 0.3s all ease-in-out;
 }
 
@@ -642,10 +639,10 @@ export default {
 }
 
 .search input {
-  padding: 0.2rem 0.4rem;
-  color: #555;
+  padding: 0.2rem 0.6rem;
+  color: #333;
   border: none;
-  background-color: rgb(240, 240, 240);
+  background-color: #fff;
   width: 36rem;
   height: 3.2rem;
 }

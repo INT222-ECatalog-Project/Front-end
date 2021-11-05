@@ -66,7 +66,17 @@
               </div>
             </div>
             <a href="#" class="forgot">Forgot your password?</a>
-            <button class="btn btn--full" type="submit">Sign in</button>
+            <button
+              class="btn btn--full"
+              type="submit"
+              :style="
+                signInUsernameisValid && signInPasswordisValid
+                  ? {}
+                  : { backgroundColor: '#707070', cursor: 'not-allowed' }
+              "
+            >
+              Sign in
+            </button>
             <div class="mobile sign-btn" @click="isSignUp = true">Sign up</div>
           </form>
         </div>
@@ -290,6 +300,13 @@
         :isTrue="false"
       />
     </div>
+    <div class="modal" v-if="failedSignIn">
+      <Popup
+        @closePopup="failedSignIn = false"
+        :text="failedSignInText"
+        :isTrue="false"
+      />
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
     <div class="big-circle"></div>
@@ -311,15 +328,17 @@ export default {
     return {
       successSignUp: false,
       failedSignUp: false,
+      failedSignIn: false,
       successSignUpText: "Congratulations, your account is ready!",
-      failedSignUpText: "this username has already used",
-      loading: false,
-      message: "",
+      failedSignUpText: "This username has already used",
+      failedSignInText: "Invalid username or password",
+      loading: false, //login + signup
+      message: "", //login + signup
       type: "password",
-      successful: false,
+      successful: false, //signup
       isSignUp: false,
       form: {
-        sign_in_email: "",
+        sign_in_username: "",
         sign_in_password: "",
         sign_up_name: "",
         sign_up_surname: "",
@@ -345,6 +364,12 @@ export default {
   computed: {
     getAllUsers() {
       return this.$store.getters.getAccounts;
+    },
+    signInUsernameisValid() {
+      return !!this.form.sign_in_username;
+    },
+    signInPasswordisValid() {
+      return !!this.form.sign_in_password;
     },
     checkUniqueUsername() {
       for (let index = 0; index < this.getAllUsers.length; index++) {
@@ -419,7 +444,7 @@ export default {
           role: {
             id: 3,
             role_name: "member",
-            role_desc: "Able to [ADD/DELETE/GET] Wishlist and [GET] Products"
+            role_desc: "Able to [ADD/DELETE/GET] Wishlist and [GET] Products",
           },
         };
         this.$store.dispatch("auth/register", newAccount);
@@ -433,7 +458,11 @@ export default {
         this.failedSignUp = true;
       }
     },
-    handleLogin(user) {
+    handleLogin() {
+      let user = {
+        username: this.form.sign_in_username,
+        password: this.form.sign_in_password,
+      };
       this.loading = true;
       this.$store.dispatch("auth/login", user).then(
         () => {
@@ -441,35 +470,37 @@ export default {
         },
         (err) => {
           this.loading = false;
+          this.failedSignIn = true;
           this.message =
             (err.respose && err.response.data && err.response.data.message) ||
             err.message ||
             err.toString();
+          console.log(this.message);
         }
       );
     },
-    handleRegister(user) {
-      this.message = "";
-      this.successful = false;
-      this.loading = true;
-      this.$store.dispatch("auth/register", user).then(
-        (data) => {
-          this.message = data.message;
-          this.successful = true;
-          this.loading = false;
-        },
-        (error) => {
-          this.message =
-            (error.respose.data &&
-              error.respose.data &&
-              error.response.data.message) ||
-            error.message ||
-            error.toString();
-          this.successful = false;
-          this.loading = false;
-        }
-      );
-    },
+    // handleRegister(user) {
+    //   this.message = "";
+    //   this.successful = false;
+    //   this.loading = true;
+    //   this.$store.dispatch("auth/register", user).then(
+    //     (data) => {
+    //       this.message = data.message;
+    //       this.successful = true;
+    //       this.loading = false;
+    //     },
+    //     (error) => {
+    //       this.message =
+    //         (error.respose.data &&
+    //           error.respose.data &&
+    //           error.response.data.message) ||
+    //         error.message ||
+    //         error.toString();
+    //       this.successful = false;
+    //       this.loading = false;
+    //     }
+    //   );
+    // },
   },
 };
 </script>
@@ -726,14 +757,14 @@ export default {
 .input-name input {
   width: 80%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }
 .input-surname input {
   width: 100%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }
@@ -742,7 +773,7 @@ export default {
 .input-password input {
   width: 100%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }

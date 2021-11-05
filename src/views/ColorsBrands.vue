@@ -38,62 +38,68 @@
             <div class="table" v-if="isShow">
               <div class="tertiary-header">Colors</div>
               <!-- addForm -->
-              <form
-                class="color-inputs"
-                @submit.prevent="addNewColor"
-                v-if="isEditColor == false"
-              >
-                <div class="color-name">
-                  <label for="color-name"
-                    >Color name<span v-if="!addColorNameIsValid">*</span></label
-                  >
-                  <input
-                    type="text"
-                    placeholder="red"
-                    name="color-name"
-                    id="color-name"
-                    v-model="form.color_name"
-                  />
-                </div>
-                <div class="color-code">
-                  <label for="color-code"
-                    >Color code<span v-if="!addColorCodeIsValid">*</span></label
-                  >
-                  <input
-                    type="text"
-                    placeholder="#FF4219"
-                    name="color-code"
-                    id="color-code"
-                    v-model="form.color_code"
-                  />
-                </div>
-                <div
-                  class="example-color"
-                  :style="[
-                    form.color_code
-                      ? { backgroundColor: form.color_code }
-                      : { backgroundColor: '#ffffff' },
-                  ]"
+              <div v-if="isAdmin">
+                <form
+                  class="color-inputs"
+                  @submit.prevent="addNewColor"
+                  v-if="isEditColor == false"
                 >
-                  <i class="fas fa-eye-dropper icon"></i>
-                  <input
-                    type="color"
-                    v-model="form.color_code"
-                    :style="{ position: 'absolute' }"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  :style="[
-                    addColorFormIsValid
-                      ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
-                  ]"
-                  class="btn btn--full"
-                >
-                  Add Color
-                </button>
-              </form>
+                  <div class="color-name">
+                    <label for="color-name"
+                      >Color name<span v-if="!addColorNameIsValid"
+                        >*</span
+                      ></label
+                    >
+                    <input
+                      type="text"
+                      placeholder="red"
+                      name="color-name"
+                      id="color-name"
+                      v-model="form.color_name"
+                    />
+                  </div>
+                  <div class="color-code">
+                    <label for="color-code"
+                      >Color code<span v-if="!addColorCodeIsValid"
+                        >*</span
+                      ></label
+                    >
+                    <input
+                      type="text"
+                      placeholder="#FF4219"
+                      name="color-code"
+                      id="color-code"
+                      v-model="form.color_code"
+                    />
+                  </div>
+                  <div
+                    class="example-color"
+                    :style="[
+                      form.color_code
+                        ? { backgroundColor: form.color_code }
+                        : { backgroundColor: '#ffffff' },
+                    ]"
+                  >
+                    <i class="fas fa-eye-dropper icon"></i>
+                    <input
+                      type="color"
+                      v-model="form.color_code"
+                      :style="{ position: 'absolute' }"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    :style="[
+                      addColorFormIsValid
+                        ? { backgroundColor: '#333' }
+                        : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                    ]"
+                    class="btn btn--full"
+                  >
+                    Add Color
+                  </button>
+                </form>
+              </div>
               <!-- /addForm -->
 
               <!-- editForm -->
@@ -173,7 +179,7 @@
                         :style="{ backgroundColor: color.color_code }"
                       ></div>
                     </td>
-                    <td>
+                    <td v-if="isAdmin">
                       <div
                         class="delete"
                         @click="deleteColorById(color.color_id)"
@@ -201,35 +207,39 @@
             <div class="table" v-if="isShow == false">
               <div class="tertiary-header">Brands</div>
               <!-- addBrand -->
-              <form
-                class="color-inputs"
-                @submit.prevent="addNewBrand"
-                v-if="isEditBrand == false"
-              >
-                <div class="color-name">
-                  <label for="brand-name"
-                    >Brand name<span v-if="!addBrandNameIsValid">*</span></label
-                  >
-                  <input
-                    type="text"
-                    placeholder="GUCCI"
-                    name="brand-name"
-                    id="brand-name"
-                    v-model="form.brand_name"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  class="btn btn--full"
-                  :style="[
-                    addBrandNameIsValid
-                      ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
-                  ]"
+              <div v-if="isAdmin">
+                <form
+                  class="color-inputs"
+                  @submit.prevent="addNewBrand"
+                  v-if="isEditBrand == false"
                 >
-                  Add Brand
-                </button>
-              </form>
+                  <div class="color-name">
+                    <label for="brand-name"
+                      >Brand name<span v-if="!addBrandNameIsValid"
+                        >*</span
+                      ></label
+                    >
+                    <input
+                      type="text"
+                      placeholder="GUCCI"
+                      name="brand-name"
+                      id="brand-name"
+                      v-model="form.brand_name"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn--full"
+                    :style="[
+                      addBrandNameIsValid
+                        ? { backgroundColor: '#333' }
+                        : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                    ]"
+                  >
+                    Add Brand
+                  </button>
+                </form>
+              </div>
               <!-- /addBrand -->
               <!-- editBrand -->
               <form
@@ -270,7 +280,7 @@
                   <tr>
                     <td>{{ index + 1 }}</td>
                     <td>{{ brand.brand_name }}</td>
-                    <td>
+                    <td v-if="isAdmin">
                       <div
                         class="delete"
                         @click="deleteBrandById(brand.brand_id)"
@@ -301,7 +311,10 @@
       <Popup
         @closePopup="failedToAdd = false"
         :text="
-          (form.brand_name || form.edit_brand_name || form.color_code || form.edit_color_code) +
+          (form.brand_name ||
+            form.edit_brand_name ||
+            form.color_code ||
+            form.edit_color_code) +
             ' ' +
             failedToAddText
         "
@@ -355,6 +368,15 @@ export default {
   },
   computed: mapGetters(["getColors", "getBrands"]),
   computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+    },
     getAllColors() {
       return this.$store.getters.getColors;
     },
@@ -392,7 +414,7 @@ export default {
         for (let index = 0; index < this.getAllColors.length; index++) {
           if (
             this.getAllColors[index].color_id != this.edit_color_id &&
-            this.getAllColors[index].color_code == this.form.edit_color_code 
+            this.getAllColors[index].color_code == this.form.edit_color_code
           ) {
             return true;
           }
@@ -692,7 +714,7 @@ tbody td {
   max-width: 12rem;
 }
 tbody:hover {
-  background-color: rgb(230, 230, 230);
+  background-color: rgb(250, 250, 250);
 }
 tbody td:nth-child(4) {
   height: 8rem;
