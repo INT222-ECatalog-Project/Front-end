@@ -1,37 +1,48 @@
 <template>
   <div>
     <div id="nav">
-      <!-- :style="isMobileSign >= 470 && this.$route.name == 'SignUp' ? {display : none} : {}" -->
       <div class="logo"><span>NERDY</span>STYLE</div>
       <div class="nav-links">
         <router-link to="/">Home</router-link>
         <a href="/#section-about">About</a>
         <router-link to="/stores">Stores</router-link>
-        <div class="dropdown">
+        <div class="dropdown" v-if="isAdmin || isDeputyAdmin">
           <ul>
             <li>
               Management<i class="fas fa-angle-down"></i>
               <ul>
-                <li><router-link to="/add-product">Products</router-link></li>
+                <li v-if="isAdmin">
+                  <router-link to="/add-product">Products</router-link>
+                </li>
                 <li>
                   <router-link to="/colors+brands"
                     >Colors &amp; Brands</router-link
                   >
                 </li>
-                <li>
+                <li v-if="isAdmin">
                   <router-link to="/users">Users</router-link>
                 </li>
               </ul>
             </li>
           </ul>
         </div>
-        <!-- <router-link to="/add-product">Add</router-link> -->
-        <router-link class="sign" to="/sign-up">Sign up</router-link>
-        <router-link to="/wish-list" class="wishlist"
+        <router-link v-if="currentUser" to="/profile">Profile</router-link>
+        <router-link
+          v-if="currentUser"
+          to="/sign-up"
+          class="sign"
+          @click="logOut"
+          >Log out</router-link
+        >
+        <router-link v-if="!currentUser" class="sign" to="/sign-up"
+          >Sign up</router-link
+        >
+        <router-link
+          to="/wish-list"
+          class="wishlist"
+          v-if="!isDeputyAdmin && !isAdmin"
           ><i class="far fa-heart"></i>
-          <!-- <span class="number">{{ numberOfWishlist.length }}</span> -->
         </router-link>
-        <!-- <router-link to="/about"><i class="fas fa-sun"></i></router-link> -->
       </div>
       <div
         class="nav-mobile-links"
@@ -51,14 +62,31 @@
         <router-link to="/" @click="isShow = !isShow">Home</router-link>
         <a href="/#section-about" @click="isShow = !isShow">About</a>
         <router-link to="/stores" @click="isShow = !isShow">Stores</router-link>
-        <router-link to="/add-product" @click="isShow = !isShow"
+        <router-link to="/add-product" v-if="isAdmin" @click="isShow = !isShow"
           >Product</router-link
         >
-        <router-link to="/colors+brands" @click="isShow = !isShow"
+        <router-link
+          to="/colors+brands"
+          v-if="isAdmin || isDeputyAdmin"
+          @click="isShow = !isShow"
           >Colors &amp; Brands</router-link
         >
-        <router-link to="/users" @click="isShow = !isShow">Users</router-link>
-        <router-link class="sign" to="/sign-up" @click="isShow = !isShow"
+        <router-link to="/users" v-if="isAdmin" @click="isShow = !isShow"
+          >Users</router-link
+        >
+        <router-link v-if="currentUser" to="/profile">Profile</router-link>
+        <router-link
+          v-if="currentUser"
+          to="/sign-up"
+          class="sign"
+          @click="logOut"
+          >Log out</router-link
+        >
+        <router-link
+          v-if="!currentUser"
+          class="sign"
+          to="/sign-up"
+          @click="isShow = !isShow"
           >Sign up</router-link
         >
         <router-link to="/wish-list" @click="isShow = !isShow"
@@ -84,7 +112,54 @@ export default {
       products: [],
     };
   },
+  methods: {
+    logOut() {
+      this.$store.dispatch("auth/logout");
+      this.isShow = !this.isShow;
+    },
+    parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+  },
   computed: {
+    currentUser() {
+      // console.log(JSON.parse(localStorage.getItem("user")).token);
+      if (localStorage.getItem("user")) {
+              console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
+              // console.log(this.$store.state.auth.user);
+              // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
+      }
+
+      // return false;
+      // console.log(this.state);
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 1) {
+      //   return true;
+      // }
+      // return false;
+    },
+    isDeputyAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 2) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 2) {
+      //   return true;
+      // }
+      // return false;
+    },
     isMobileSign() {
       return window.innerWidth;
     },
@@ -98,17 +173,13 @@ export default {
     },
   },
   mounted() {
-    // fetch(this.productUrl)
-    //   .then((res) => res.json())
-    //   .then((data) => (this.products = data))
-    //   .catch((err) => console.log(err.message));
     window.addEventListener("scroll", () => {
       if (window.scrollY > document.getElementById("nav").offsetTop) {
         document.getElementById("nav").classList.add("sticky");
       } else {
         document.getElementById("nav").classList.remove("sticky");
       }
-    })
+    });
     document.querySelector(".logo").addEventListener("click", () => {
       window.scrollTo(0, 0);
     });
