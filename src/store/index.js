@@ -1,9 +1,13 @@
 import { createStore, storeKey } from "vuex";
 import { auth } from "./auth.module";
-const BASE_URL = "http://52.187.114.221:9000/api";
+import authHeader from '../services/auth-header';
+let user = JSON.parse(localStorage.getItem("user"));
+// const BASE_URL = "http://52.187.114.221:9000/api";
+const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
-    defaultUrl: "http://52.187.114.221:9000/api",
+    // defaultUrl: "http://52.187.114.221:9000/api",
+    defaultUrl: "http://localhost:9000/api",
     products: [],
     colors: [],
     brands: [],
@@ -158,7 +162,8 @@ export default createStore({
   },
   actions: {
     async getProductsToStore(context) {
-      fetch(this.state.productUrl)
+      fetch(this.state.productUrl,
+      )
         .then((res) => res.json())
         .then((data) => {
           context.commit("GET_PRODUCTS", data.data);
@@ -195,6 +200,7 @@ export default createStore({
       formData.append("imageFile", payload.image);
       formData.append("newProduct", blob);
       fetch(this.state.productUrl, {
+        headers: authHeader(),
         method: "POST",
         body: formData,
       })
@@ -216,6 +222,7 @@ export default createStore({
       console.log(payload.product_id);
       console.log(payload.image);
       fetch(this.state.productUrl + "/" + payload.product_id, {
+        headers: authHeader(),
         method: "PUT",
         body: formData,
       })
@@ -228,6 +235,7 @@ export default createStore({
 
     deleteProduct(context, id) {
       fetch(this.state.productUrl + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_PRODUCT", id);
@@ -291,6 +299,7 @@ export default createStore({
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          "Authorization": 'Bearer ' + user.token 
         },
         body: jsonColor,
       })
@@ -304,6 +313,7 @@ export default createStore({
 
     deleteColor(context, id) {
       fetch(this.state.colorUrl + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_COLOR", id);
@@ -317,6 +327,7 @@ export default createStore({
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          "Authorization": 'Bearer ' + user.token 
         },
         body: jsonColor,
       })
