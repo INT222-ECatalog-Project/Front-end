@@ -9,6 +9,7 @@ import Users from '../views/Users.vue'
 import WishList from '../views/WishList.vue'
 import NotFound from '../views/NotFound.vue'
 import ColorsBrands from '../views/ColorsBrands.vue'
+import Profile from '../views/Profile.vue'
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
 const routes = [
@@ -36,28 +37,74 @@ const routes = [
   {
     path: '/add-product',
     name: 'AddProduct',
-    component: AddProduct
+    component: AddProduct,
+    beforeEnter: ((to, from, next) => {
+      // const loggedIn = localStorage.getItem('user');
+      let isAdmin = JSON.parse(localStorage.getItem("user")).role
+      if (isAdmin != 1) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/edit-product/:id',
     name: 'EditProduct',
     component: EditProduct,
-    props: true
+    props: true,
+    beforeEnter: ((to, from, next) => {
+      const loggedIn = localStorage.getItem('user');
+      if (!loggedIn) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/users',
     name: 'Users',
     component: Users,
+    beforeEnter: ((to, from, next) => {
+      const loggedIn = localStorage.getItem('user');
+      if (!loggedIn) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/wish-list',
     name: 'WishList',
     component: WishList,
+    beforeEnter: ((to, from, next) => {
+      const loggedIn = localStorage.getItem('user');
+      if (!loggedIn) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/colors+brands',
     name: 'ColorsBrands',
     component: ColorsBrands,
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    // beforeEnter: ((to, from, next) => {
+    //   const loggedIn = localStorage.getItem('user');
+    //   if (!loggedIn) {
+    //     next('/sign-up');
+    //   } else {
+    //     next();
+    //   }
+    // })
   },
   {
     path: '/:catchall(.*)',
