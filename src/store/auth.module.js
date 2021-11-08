@@ -1,4 +1,5 @@
 import AuthService from "../services/auth.service";
+// import { jwtDecrypt } from "../shared/jwtHelper";
 const user = JSON.parse(localStorage.getItem("user"));
 const initialState = user
   ? { status: { loggedIn: true }, user }
@@ -38,6 +39,9 @@ export const auth = {
   },
   mutations:{
     loginSuccess(state, user) {
+        // let a = ((JSON.parse(localStorage.getItem("user")).token));
+        // const jwtDecodeValue = jwtDecrypt(user.token);
+        // console.log(jwtDecodeValue);
         state.status.loggedIn = true;
         state.user = user;
     },

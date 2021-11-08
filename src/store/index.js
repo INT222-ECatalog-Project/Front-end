@@ -21,9 +21,10 @@ export default createStore({
 
     // account
     accounts: [],
-    accountUrl: "http://localhost:3000/accounts",
+    accountUrl: `${BASE_URL}/accounts/adminpage`,
+    accountAdminURL: `${BASE_URL}/account`,
     roles: [],
-    roleUrl: "http://localhost:3000/roles",
+    roleUrl: `${BASE_URL}/roles`,
   },
   mutations: {
     // products
@@ -142,7 +143,7 @@ export default createStore({
       state.accounts.push(newAccount);
     },
     DELETE_ACCOUNT(state, id) {
-      const index = state.accounts.findIndex((account) => account.id == id);
+      const index = state.accounts.findIndex((account) => account.account_id == id);
       if (index != -1) {
         state.accounts.splice(index, 1);
       }
@@ -355,6 +356,7 @@ export default createStore({
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          "Authorization": 'Bearer ' + user.token 
         },
         body: jsonBrand,
       })
@@ -368,6 +370,7 @@ export default createStore({
     deleteBrand(context, id) {
       fetch(this.state.brandUrl + "/" + id, {
         method: "DELETE",
+        headers: authHeader(),
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_BRAND", id);
     },
@@ -379,6 +382,7 @@ export default createStore({
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          "Authorization": 'Bearer ' + user.token 
         },
         body: jsonBrand,
       })
@@ -400,12 +404,16 @@ export default createStore({
 
     // Accounts
     getAccountsToSite(context) {
-      fetch(this.state.accountUrl)
-        .then((res) => res.json())
-        .then((data) => {
-          context.commit("GET_ACCOUNTS", data);
+      // if (user && user.token) {
+        fetch(this.state.accountUrl,{
+          headers: authHeader(),
         })
-        .catch((err) => console.log(err.message));
+          .then((res) => res.json())
+          .then((data) => {
+            context.commit("GET_ACCOUNTS", data.data);
+          })
+          .catch((err) => console.log(err.message));
+      // }
     },
 
     createAccount(context, newAccount) {
@@ -426,21 +434,23 @@ export default createStore({
         .catch((err) => console.log(err));
     },
 
-    deleteAccount(context, id) {
-      fetch(this.state.accountUrl + "/" + id, {
+    deleteAccountByAdmin(context, id) {
+      fetch(this.state.accountAdminURL + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_ACCOUNT", id);
     },
 
-    editAccount(context, editAccount) {
+    editAccountByAdmin(context, editAccount) {
       const jsonEditAccount = JSON.stringify(editAccount, {
         type: "application/json",
       });
-      fetch(this.state.accountUrl + "/" + editAccount.id, {
+      fetch(this.state.accountAdminURL + "/" + editAccount.account_id, {
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          "Authorization": 'Bearer ' + user.token 
         },
         body: jsonEditAccount,
       })
@@ -452,10 +462,12 @@ export default createStore({
 
     // roles
     getRolesToSite(context) {
-      fetch(this.state.roleUrl)
+      fetch(this.state.roleUrl,{
+        headers: authHeader(),
+      })
       .then((res) => res.json())
       .then((data) => {
-        context.commit("GET_ROLES", data);
+        context.commit("GET_ROLES", data.data);
       })
       .catch((err) => console.log(err.message));
     }
