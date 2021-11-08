@@ -232,6 +232,7 @@ select {
   color: #555;
   border: none;
   background: rgb(250, 250, 250);
+  height: 3.2rem;
 }
 
 select:focus {
