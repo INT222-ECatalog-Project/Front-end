@@ -163,7 +163,7 @@
               <select name="role" id="role" v-model="form.role">
                 <option value="" selected>none</option>
                 <option
-                  :value="role"
+                  :value="role.role_id"
                   v-for="role in getAdminRoles"
                   :key="role.id"
                   >{{ role.role_name }}</option
@@ -212,8 +212,8 @@
               <option value="">none</option>
               <option
                 v-for="role in getAllRoles"
-                :key="role.id"
-                :value="role.role_name"
+                :key="role.role_id"
+                :value="role.role_id"
                 >{{ role.role_name }}</option
               >
             </select>
@@ -222,7 +222,7 @@
             <div
               class="filter-mb admin-filter"
               :style="[
-                adminFilter == true || selectedRole == 'Admin'
+                adminFilter == true || selectedRole == 1
                   ? { backgroundColor: '#ffd700', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -233,7 +233,7 @@
             <div
               class="filter-mb deputy-admin-filter"
               :style="[
-                deputyAdminFilter == true || selectedRole == 'Deputy Admin'
+                deputyAdminFilter == true || selectedRole == 2
                   ? { backgroundColor: '#FF6347', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -244,7 +244,7 @@
             <div
               class="filter-mb member-filter"
               :style="[
-                memberFilter == true || selectedRole == 'Member'
+                memberFilter == true || selectedRole == 3
                   ? { backgroundColor: '#9400D3', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -264,39 +264,47 @@
           <!-- component -->
           <List
             class="List"
-            v-for="user in getAllUsers"
-            :key="user.id"
+            v-for="(user, index) in getAllUsers"
+            :key="user.account_id"
             :user="user"
             @deleteAccountById="handleDelete"
             @editAccountById="toggleEditAccount(user)"
+            v-show="setPaginate(index)"
           ></List>
         </transition-group>
         <transition-group name="slide-fade">
-          <Table :ths="ths" class="table" :key="ths">
-            <tbody v-for="(user, index) in getAllUsers" :key="user.id">
+          <Table :ths="ths" class="table" id="table" :key="ths">
+            <tbody
+              v-for="(user, index) in getAllUsers"
+              :key="user.account_id"
+              v-show="setPaginate(index)"
+            >
               <tr>
                 <td>{{ index + 1 }}</td>
                 <td>{{ user.first_name }}</td>
                 <td>{{ user.last_name }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.password }}</td>
-                <td>{{ user.role.role_name }}</td>
+                <!-- <td>{{ user.password }}</td> -->
+                <td v-if="user.role_id == 1">Admin</td>
+                <td v-if="user.role_id == 2">Deputy Admin</td>
+                <td v-if="user.role_id == 3">Member</td>
                 <td>
                   <div
                     class="delete"
-                    @click="deleteAccount(user.id)"
+                    @click="deleteAccount(user.account_id)"
                     :style="{ display: 'inline' }"
                   >
                     Delete
                   </div>
-                  |
+
                   <div
+                    v-if="user.role_id != 3"
                     class="edit"
                     @click="toggleEditAccount(user)"
                     :style="{ display: 'inline' }"
                   >
-                    Edit
+                    | Edit
                   </div>
                 </td>
               </tr>
@@ -304,6 +312,21 @@
           </Table>
           <!-- -------- -->
         </transition-group>
+      </div>
+    </div>
+    <div id="pagination">
+      <div
+        :style="[
+          current == page_index
+            ? { backgroundColor: '#333', color: '#fff' }
+            : {},
+        ]"
+        class="btn-page"
+        v-for="page_index in pageTotal"
+        :key="page_index"
+        @click.prevent="updateCurrent(page_index)"
+      >
+        {{ page_index }}
       </div>
     </div>
     <Socials class="socials"></Socials>
@@ -326,6 +349,8 @@ export default {
   },
   data() {
     return {
+      current: 1,
+      paginate: 10,
       type: "password",
       isEdit: false,
       users: [],
@@ -334,15 +359,7 @@ export default {
       adminFilter: false,
       deputyAdminFilter: false,
       memberFilter: false,
-      ths: [
-        "No",
-        "First Name",
-        "Last Name",
-        "Username",
-        "Email",
-        "Password",
-        "Role",
-      ],
+      ths: ["No", "First Name", "Last Name", "Username", "Email", "Role"],
       form: {
         id: "",
         name: "",
@@ -368,7 +385,7 @@ export default {
       this.memberFilter = false;
       this.adminFilter = !this.adminFilter;
       if (this.adminFilter) {
-        this.selectedRole = this.getAllRoles[0].role_name;
+        this.selectedRole = this.getAllRoles[0].role_id;
       } else {
         this.selectedRole = null;
       }
@@ -378,7 +395,7 @@ export default {
       this.memberFilter = false;
       this.deputyAdminFilter = !this.deputyAdminFilter;
       if (this.deputyAdminFilter) {
-        this.selectedRole = this.getAllRoles[1].role_name;
+        this.selectedRole = this.getAllRoles[1].role_id;
       } else {
         this.selectedRole = null;
       }
@@ -388,7 +405,7 @@ export default {
       this.deputyAdminFilter = false;
       this.memberFilter = !this.memberFilter;
       if (this.memberFilter) {
-        this.selectedRole = this.getAllRoles[2].role_name;
+        this.selectedRole = this.getAllRoles[2].role_id;
       } else {
         this.selectedRole = null;
       }
@@ -397,13 +414,13 @@ export default {
       window.scrollTo(0, 0);
       this.isEdit = !this.isEdit;
       if (this.isEdit == true) {
-        this.form.id = editAccount.id;
+        this.form.id = editAccount.account_id;
         this.form.name = editAccount.first_name;
         this.form.surname = editAccount.last_name;
         this.form.username = editAccount.username;
         this.form.email = editAccount.email;
-        this.form.password = editAccount.password;
-        this.form.role = editAccount.role;
+        // this.form.password = editAccount.password;
+        this.form.role = editAccount.role_id;
       } else {
         this.form.id = "";
         this.form.name = "";
@@ -417,30 +434,30 @@ export default {
     // in the table
     deleteAccount(id) {
       if (confirm("Do you really want to delete? 😲")) {
-        this.$store.dispatch("deleteAccount", id);
+        this.$store.dispatch("deleteAccountByAdmin", id);
       }
     },
     editAccount() {
       if (this.editFormIsValid) {
         const index = this.getAllUsers.findIndex(
-          (account) => account.id == this.form.id
+          (account) => account.account_id == this.form.id
         );
         if (index !== -1) {
           const editAccount = {
-            id: this.form.id,
+            account_id: this.form.id,
             first_name: this.form.name,
             last_name: this.form.surname,
             username: this.form.username,
             email: this.form.email,
             password: this.form.password,
-            role: this.form.role,
+            role_id: this.form.role,
           };
           // console.log(this.form.id);
           this.getAllUsers.splice(index, 1, editAccount);
           // console.log(this.queryUsers);
-          this.$store.dispatch("editAccount", editAccount);
+          this.$store.dispatch("editAccountByAdmin", editAccount);
           this.isEdit = false;
-          this.form.id = "";
+          this.form.account_id = "";
           this.form.name = "";
           this.form.surname = "";
           this.form.username = "";
@@ -459,7 +476,7 @@ export default {
           username: this.form.username,
           email: this.form.email,
           password: this.form.password,
-          role: this.form.role,
+          role_id: this.form.role,
         };
         this.$store
           .dispatch("createAccount", newAccount)
@@ -479,20 +496,40 @@ export default {
         return user.id != id;
       });
     },
-    handleEdit(user){
-    }
+    handleEdit(user) {},
+    setPaginate(i) {
+      if (this.current == 1) {
+        return i < this.paginate;
+      } else {
+        return (
+          i >= this.paginate * (this.current - 1) &&
+          i < this.current * this.paginate
+        );
+      }
+    },
+    updateCurrent(i) {
+      this.current = i;
+      let table = document.querySelector("#table");
+      window.scrollTo(0, table.offsetTop);
+    },
   },
   computed: mapGetters(["getAccounts", "getRoles"]),
   computed: {
     getAllUsers() {
-      if (this.searchInput || this.selectedRole) {
+      if (this.searchInput && this.selectedRole) {
         return this.$store.getters.getAccounts.filter((user) => {
           return (
-            user.role.role_name
-              .toLowerCase()
-              .includes(this.selectedRole.toLowerCase()) &&
+            user.role_id == this.selectedRole &&
             user.username.toLowerCase().includes(this.searchInput)
           );
+        });
+      } else if (this.selectedRole) {
+        return this.$store.getters.getAccounts.filter((user) => {
+          return user.role_id == this.selectedRole;
+        });
+      } else if (this.searchInput) {
+        return this.$store.getters.getAccounts.filter((user) => {
+          return user.username.toLowerCase().includes(this.searchInput);
         });
       }
       return this.$store.getters.getAccounts;
@@ -505,16 +542,6 @@ export default {
         return roles.role_name != "member";
       });
     },
-    // queryUsers() {
-    //   return this.getAllUsers.filter((user) => {
-    //     return (
-    //       user.role.role_name
-    //         .toLowerCase()
-    //         .includes(this.selectedRole.toLowerCase()) &&
-    //       user.username.toLowerCase().includes(this.searchInput)
-    //     );
-    //   });
-    // },
     editNameIsValid() {
       return !!this.form.name && this.form.name.length <= 50;
     },
@@ -551,6 +578,9 @@ export default {
         this.noSpecialChars &&
         this.editRoleIsValid
       );
+    },
+    pageTotal() {
+      return Math.ceil((this.getAllUsers.length - 1) / this.paginate);
     },
   },
   // created() {
@@ -652,7 +682,7 @@ tbody td {
   line-height: 1.8;
 }
 tbody:hover {
-  background-color: rgb(230, 230, 230);
+  background-color: rgb(250, 250, 250);
 }
 tbody td:nth-child(4) {
   height: 8rem;
@@ -665,6 +695,7 @@ tbody td:nth-child(4) {
 .edit {
   cursor: pointer;
   transition: 0.2s all ease-in-out;
+  text-decoration: underline;
 }
 .delete:hover {
   color: #eb435f;
@@ -776,6 +807,29 @@ input::placeholder {
 label span {
   font-size: 1rem;
   color: #eb435f;
+}
+#pagination {
+  margin: 5.8rem 0;
+  display: flex;
+  justify-content: center;
+}
+.btn-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0.6rem;
+  font-weight: 700;
+  transition: 00.15s all ease-in-out;
+  box-shadow: inset 0 0 0 1px #333;
+}
+.btn-page:hover {
+  background-color: #333;
+  color: #fff;
 }
 /* below 928px */
 @media (max-width: 58em) {
