@@ -126,6 +126,9 @@ export default {
 };
 </script>
 <style scoped>
+.section{
+  margin-top: 3.6rem;
+}
 .container {
   position: relative;
 }
