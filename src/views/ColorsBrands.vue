@@ -5,13 +5,13 @@
         <div class="Form">
           <div>
             <div class="sub-heading">Colors &amp; Brands</div>
-            <div class="secondary-header">Management</div>
+            <div class="secondary-header" id="breakPoint">Management</div>
           </div>
           <div class="options">
             <div class="switch-btn">
               <div
                 class="btn-colors"
-                @click="isShow = !isShow"
+                @click="isShow = !isShow; current = 1"
                 :style="[
                   isShow == true
                     ? { backgroundColor: '#eb435f', color: 'white' }
@@ -22,7 +22,7 @@
               </div>
               <div
                 class="btn-brands"
-                @click="isShow = !isShow"
+                @click="isShow = !isShow; current = 1"
                 :style="[
                   isShow == false
                     ? { backgroundColor: '#eb435f', color: 'white' }
@@ -168,6 +168,7 @@
                 <tbody
                   v-for="(color, index) in getAllColors"
                   :key="color.color_code"
+                  v-show="setPaginate(index)"
                 >
                   <tr>
                     <td>{{ index + 1 }}</td>
@@ -276,6 +277,7 @@
                 <tbody
                   v-for="(brand, index) in getAllBrands"
                   :key="brand.brand_id"
+                  v-show="setPaginate(index)"
                 >
                   <tr>
                     <td>{{ index + 1 }}</td>
@@ -321,6 +323,21 @@
         :isTrue="false"
       />
     </div>
+        <div id="pagination">
+      <div
+        :style="[
+          current == page_index
+            ? { backgroundColor: '#333', color: '#fff' }
+            : {},
+        ]"
+        class="btn-page"
+        v-for="page_index in pageTotal"
+        :key="page_index"
+        @click.prevent="updateCurrent(page_index)"
+      >
+        {{ page_index }}
+      </div>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -341,6 +358,8 @@ export default {
   },
   data() {
     return {
+      current: 1,
+      paginate: 20,
       failedToAdd: false,
       failedToAddText: "has already used",
       colors: [],
@@ -451,6 +470,10 @@ export default {
           }
         }
       }
+    },
+        pageTotal() {
+          return this.isShow ?  Math.ceil((this.getAllColors.length - 1) / this.paginate) :  Math.ceil((this.getAllBrands.length - 1) / this.paginate);
+      // return Math.ceil((this.getAllUsers.length - 1) / this.paginate);
     },
   },
 
@@ -569,6 +592,21 @@ export default {
       this.edit_brand_id = id;
       this.form.edit_brand_name = this.getAllBrands[index].brand_name;
       this.isEditBrand = !this.isEditBrand;
+    },
+     setPaginate(i) {
+      if (this.current == 1) {
+        return i < this.paginate;
+      } else {
+        return (
+          i >= this.paginate * (this.current - 1) &&
+          i < this.current * this.paginate
+        );
+      }
+    },
+    updateCurrent(i) {
+      this.current = i;
+      let breakPoint = document.querySelector("#breakPoint");
+      window.scrollTo(0, breakPoint.offsetTop);
     },
   },
 };
@@ -753,6 +791,29 @@ input[type="color"] {
 }
 .edit:hover {
   color: #ffd700;
+}
+#pagination {
+  margin: 5.8rem 0;
+  display: flex;
+  justify-content: center;
+}
+.btn-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0.6rem;
+  font-weight: 700;
+  transition: 00.15s all ease-in-out;
+  box-shadow: inset 0 0 0 1px #333;
+}
+.btn-page:hover {
+  background-color: #333;
+  color: #fff;
 }
 /* below 872px */
 @media (max-width: 55em) {
