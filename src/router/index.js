@@ -39,9 +39,9 @@ const routes = [
     name: 'AddProduct',
     component: AddProduct,
     beforeEnter: ((to, from, next) => {
-      // const loggedIn = localStorage.getItem('user');
-      let isAdmin = JSON.parse(localStorage.getItem("user")).role
-      if (isAdmin != 1) {
+      const loggedIn = localStorage.getItem('user');
+      let isAdmin = JSON.parse(localStorage.getItem("user")).role;
+      if (isAdmin != 1 && loggedIn) {
         next('/sign-up');
       } else {
         next();
@@ -55,7 +55,8 @@ const routes = [
     props: true,
     beforeEnter: ((to, from, next) => {
       const loggedIn = localStorage.getItem('user');
-      if (!loggedIn) {
+      let isNotMember = JSON.parse(localStorage.getItem("user")).role
+      if (isNotMember== 3 && loggedIn) {
         next('/sign-up');
       } else {
         next();
@@ -68,7 +69,8 @@ const routes = [
     component: Users,
     beforeEnter: ((to, from, next) => {
       const loggedIn = localStorage.getItem('user');
-      if (!loggedIn) {
+      let isAdmin = JSON.parse(localStorage.getItem("user")).role
+      if (isAdmin != 1 && loggedIn) {
         next('/sign-up');
       } else {
         next();
@@ -92,19 +94,29 @@ const routes = [
     path: '/colors+brands',
     name: 'ColorsBrands',
     component: ColorsBrands,
+    beforeEnter: ((to, from, next) => {
+      const loggedIn = localStorage.getItem('user');
+      let isAdmin = JSON.parse(localStorage.getItem("user")).role;
+      let isDeputyAdmin = JSON.parse(localStorage.getItem("user")).role;
+      if (isAdmin != 1 && isDeputyAdmin != 2 && loggedIn) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/profile',
     name: 'Profile',
     component: Profile,
-    // beforeEnter: ((to, from, next) => {
-    //   const loggedIn = localStorage.getItem('user');
-    //   if (!loggedIn) {
-    //     next('/sign-up');
-    //   } else {
-    //     next();
-    //   }
-    // })
+    beforeEnter: ((to, from, next) => {
+      const loggedIn = localStorage.getItem('user');
+      if (!loggedIn) {
+        next('/sign-up');
+      } else {
+        next();
+      }
+    })
   },
   {
     path: '/:catchall(.*)',

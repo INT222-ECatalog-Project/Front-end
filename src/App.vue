@@ -74,7 +74,7 @@
         <router-link to="/users" v-if="isAdmin" @click="isShow = !isShow"
           >Users</router-link
         >
-        <router-link v-if="currentUser" to="/profile">Profile</router-link>
+        <router-link v-if="currentUser" to="/profile" @click="isShow = !isShow">Profile</router-link>
         <router-link
           v-if="currentUser"
           to="/sign-up"
@@ -89,7 +89,7 @@
           @click="isShow = !isShow"
           >Sign up</router-link
         >
-        <router-link to="/wish-list" @click="isShow = !isShow"
+        <router-link to="/wish-list" @click="isShow = !isShow" v-if="!isDeputyAdmin && !isAdmin"
           >Wish List</router-link
         >
       </div>
@@ -108,7 +108,6 @@ export default {
   data() {
     return {
       isShow: false,
-      productUrl: "http://localhost:3000/products",
       products: [],
     };
   },
@@ -131,8 +130,11 @@ export default {
     currentUser() {
       // console.log(JSON.parse(localStorage.getItem("user")).token);
       if (localStorage.getItem("user")) {
-              console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
-              // console.log(this.$store.state.auth.user);
+              // console.log(this.$store.state.auth.user.role_id);
+              console.log(this.$store.state.auth.user);
+              // console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
+              // console.log(JSON.parse(localStorage.getItem("user")).token.split('.'));
+              // console.log(atob(JSON.parse(localStorage.getItem("user")).token.split('.')[1]));
               // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
       }
 
@@ -354,6 +356,7 @@ export default {
     font-size: 2rem;
     color: #333;
     justify-self: end;
+    cursor: pointer;
   }
   .menu-bar {
     display: flex;
