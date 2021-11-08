@@ -3,9 +3,9 @@
     <div
       class="tab-color"
       :style="[
-        user.role.role_name == 'admin'
+        user.role_id == 1
           ? { backgroundColor: '#ffd700' }
-          : user.role.role_name == 'deputy admin'
+          : user.role_id == 2
           ? { backgroundColor: '#FF6347' }
           : { backgroundColor: '#9400D3' },
       ]"
@@ -16,14 +16,16 @@
         <div
           class="role"
           :style="[
-            user.role.role_name == 'admin'
+            user.role_id == 1
               ? { backgroundColor: '#ffd700' }
-              : user.role.role_name == 'deputy admin'
+              : user.role_id == 2
               ? { backgroundColor: '#FF6347' }
               : { backgroundColor: '#9400D3' },
           ]"
         >
-          {{ user.role.role_name }}
+          <div v-if="user.role_id == 1">Admin</div>
+          <div v-if="user.role_id == 2">Deputy Admin</div>
+          <div v-if="user.role_id == 3">Member</div>
         </div>
       </div>
       <div class="email">
@@ -33,17 +35,19 @@
       <div class="username">
         <i class="icon fas fa-user"></i> <span>{{ user.username }}</span>
       </div>
-      <div class="password">
-        <i class="icon fas fa-key"></i> <span>{{ user.password }}</span>
-      </div>
       <div class="action-btn">
-        <div class="btn" @click="deleteAccount(user.id)">
+        <button
+          class="btn btn-edit"
+          type="submit"
+          @click="editAccount"
+          v-if="user.role_id != 3"
+        >
+          <span class="edit-text">edit</span><i class="edit fas fa-pen"></i>
+        </button>
+        <div class="btn btn-delete" @click="deleteAccount(user.account_id)">
           <span class="delete-text">delete</span
           ><i class="delete fas fa-trash-alt"></i>
         </div>
-        <button class="btn" type="submit" @click="editAccount">
-          <span class="edit-text">edit</span><i class="edit fas fa-pen"></i>
-        </button>
       </div>
     </div>
   </div>
@@ -59,9 +63,9 @@ export default {
         this.$emit("deleteAccountById", id);
       }
     },
-    editAccount(){
-      this.$emit("editAccountById")
-    }
+    editAccount() {
+      this.$emit("editAccountById");
+    },
   },
 };
 </script>
@@ -112,7 +116,6 @@ export default {
   text-transform: capitalize;
 }
 .email,
-.password,
 .username {
   font-size: 1.4rem;
 }
@@ -121,7 +124,6 @@ export default {
   margin-right: 0.8rem;
 }
 .email span,
-.password span,
 .username span {
   color: #555;
 }
@@ -144,13 +146,11 @@ export default {
   background-color: rgb(151, 0, 0);
 }
 
-.action-btn .btn:last-child {
-  /* box-shadow: inset 0 0 0 1px #333; */
+.action-btn .btn-edit {
   background-color: transparent;
   color: #333;
 }
-.action-btn .btn:last-child:hover {
-  box-shadow: inset 0 0 0 1px #333;
+.action-btn .btn-edit:hover {
   background-color: #333;
   color: #fff !important;
 }
