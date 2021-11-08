@@ -7,20 +7,49 @@
             <div class="profile-header">
               <div class="profile-tab"></div>
               <div class="flex-absolute">
-                <div class="profile-pic"></div>
+                <div
+                  class="profile-pic"
+                  :style="[
+                    role_id == 1
+                      ? { backgroundColor: '#ffd700' }
+                      : role_id == 2
+                      ? { backgroundColor: '#FF6347' }
+                      : { backgroundColor: '#9400D3' },
+                  ]"
+                ></div>
                 <div class="info">
-                  <div class="fullname">Similan Klinsmith</div>
-                  <div class="role">Admin</div>
+                  <div class="fullname">{{ first_name }} {{ last_name }}</div>
+                  <div
+                    class="role"
+                    v-if="role_id == 1"
+                    :style="{ backgroundColor: '#ffd700' }"
+                  >
+                    Admin
+                  </div>
+                  <div
+                    class="role"
+                    v-if="role_id == 2"
+                    :style="{ backgroundColor: '#FF6347' }"
+                  >
+                    Deputy Admin
+                  </div>
+                  <div
+                    class="role"
+                    v-if="role_id == 3"
+                    :style="{ backgroundColor: '#9400D3' }"
+                  >
+                    Member
+                  </div>
                 </div>
               </div>
             </div>
             <div class="profile-body">
               <div class="email">
                 <i class="icon fas fa-envelope"></i>
-                <span>deep25952@gmail.com</span>
+                <span>{{ email }}</span>
               </div>
               <div class="username">
-                <i class="icon fas fa-user"></i> <span>ddivdeep</span>
+                <i class="icon fas fa-user"></i> <span>{{ username }}</span>
               </div>
               <div class="description">
                 Lorem ipsum dolor sit, amet consectetur adipisicing elit.
@@ -37,17 +66,28 @@
         </transition-group>
         <div class="edit-container" v-if="isEdit">
           <div class="left-side">
-            <div class="profile-pic"></div>
+            <div
+              class="profile-pic"
+              :style="[
+                role_id == 1
+                  ? { backgroundColor: '#ffd700' }
+                  : role_id == 2
+                  ? { backgroundColor: '#FF6347' }
+                  : { backgroundColor: '#9400D3' },
+              ]"
+            ></div>
             <div class="info">
-              <div class="fullname">Similan Klinsmith</div>
-              <div class="role">Admin</div>
+              <div class="fullname">{{first_name}} {{last_name}}</div>
+              <div class="role" v-if="role_id == 1" :style="{border:'1.5px solid #ffd700',color:'#ffd700'}">Admin</div>
+              <div class="role" v-if="role_id == 2" :style="{border:'1.5px solid #FF6347',color:'#FF6347'}">Deputy Admin</div>
+              <div class="role" v-if="role_id == 3" :style="{border:'1.5px solid #9400D3',color:'#9400D3'}">Member</div>
             </div>
           </div>
           <form action="" class="form">
             <div class="form-header">Edit Profile</div>
             <div class="input-name">
               <label for="name">Name </label>
-              <input type="text" name="name" id="name" placeholder="John" />
+              <input type="text" name="name" id="name" placeholder="John" v-model="form.edit_first_name"/>
             </div>
             <div class="input-surname">
               <label for="surname">Surname </label>
@@ -56,6 +96,7 @@
                 name="surname"
                 id="surname"
                 placeholder="Maxwell"
+                v-model="form.edit_last_name"
               />
             </div>
             <div class="input-username">
@@ -65,6 +106,7 @@
                 name="username"
                 id="username"
                 placeholder="JohnMax"
+                v-model="form.edit_username"
               />
             </div>
             <div class="input-email">
@@ -74,6 +116,7 @@
                 name="email"
                 id="email"
                 placeholder="example@mail.com"
+                v-model="form.edit_email"
               />
             </div>
             <div class="input-password">
@@ -123,6 +166,7 @@
 <script>
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
+import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
   components: {
     Socials,
@@ -130,13 +174,41 @@ export default {
   },
   data() {
     return {
+      tokenData: null,
+      account_id: "",
+      username: "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      role_id: "",
+      form: {
+        edit_first_name:"",
+        edit_last_name:"",
+        edit_username:"",
+        edit_email:"",
+        password:""
+      },
       isEdit: false,
       type: "password",
     };
   },
+  mounted() {
+    window.scrollTo(0, 0);
+    this.tokenData = jwtDecrypt(JSON.parse(localStorage.getItem("user")).token);
+    this.account_id = this.tokenData.account_id;
+    this.username = this.tokenData.username;
+    this.first_name = this.tokenData.first_name;
+    this.last_name = this.tokenData.last_name;
+    this.email = this.tokenData.email;
+    this.role_id = this.tokenData.role_id;
+  },
   methods: {
     toggleEdit() {
       this.isEdit = !this.isEdit;
+      this.form.edit_first_name = this.first_name;
+      this.form.edit_last_name = this.last_name;
+      this.form.edit_username = this.username;
+      this.form.edit_email = this.email
       window.scrollTo(0, 0);
     },
     togglePassword() {
@@ -204,8 +276,8 @@ export default {
   color: #fff;
   font-size: 1.2rem;
   font-weight: 700;
-  background-color: #ffd700;
-  width: 10rem;
+  /* background-color: #ffd700; */
+  width: 10.6rem;
   text-align: center;
   border-radius: 2rem;
   padding: 0.8rem 0.2rem;
@@ -293,8 +365,6 @@ export default {
   color: #fff;
 }
 .left-side .role {
-  color: #ffd700;
-  border: 1.5px solid #ffd700;
   background-color: transparent;
 }
 .form {
