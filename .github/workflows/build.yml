@@ -30,8 +30,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }} 
     - name: build docker images
       run: |
-        docker build . --tag ghcr.io/int222-ecatalog-project/frontend
+        docker build . --tag ghcr.io/int222-ecatalog-project/front-end
         docker images 
     - name: push docker image to registy
       run: |
-        docker push ghcr.io/int222-ecatalog-project/frontend
+        docker push ghcr.io/int222-ecatalog-project/front-end

@@ -44,4 +44,4 @@ jobs:
             docker pull ghcr.io/int222-ecatalog-project/front-end
             docker images
             docker rm frontend -f
-            docker run -d --name frontend --network bagshop --ip 172.18.0.4 ghcr.io/int222-ecatalog-project/front-end
+            docker run -d --name frontend --network clothshopnetwork --ip 172.18.0.4 ghcr.io/int222-ecatalog-project/front-end
