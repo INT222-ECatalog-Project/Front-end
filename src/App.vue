@@ -37,12 +37,16 @@
         <router-link v-if="!currentUser" class="sign" to="/sign-up"
           >Sign up</router-link
         >
-        <router-link
-          to="/wish-list"
+        <a
+          href="/wish-list"
           class="wishlist"
           v-if="!isDeputyAdmin && !isAdmin"
-          ><i class="far fa-heart"></i>
-        </router-link>
+          >
+          <div class="wishlistCount">
+              <i class="far fa-heart"></i><div class="number">{{getAllWishlist.length}}</div>
+          </div>
+          <!-- <div v-if="getAllWishlist"><i class="fas fa-heart"></i></div> -->
+        </a>
       </div>
       <div
         class="nav-mobile-links"
@@ -89,8 +93,8 @@
           @click="isShow = !isShow"
           >Sign up</router-link
         >
-        <router-link to="/wish-list" @click="isShow = !isShow" v-if="!isDeputyAdmin && !isAdmin"
-          >Wish List</router-link
+        <a href="/wish-list" @click="isShow = !isShow" v-if="!isDeputyAdmin && !isAdmin"
+          >Wish List</a
         >
       </div>
     </div>
@@ -104,6 +108,8 @@
   <!-- <router-view/> -->
 </template>
 <script>
+import EventBus from "./common/EventBus";
+import { mapGetters, mapActions } from "vuex";
 export default {
   data() {
     return {
@@ -112,9 +118,13 @@ export default {
     };
   },
   methods: {
+        ...mapActions(["getWishListToStore"]),
     logOut() {
-      this.$store.dispatch("auth/logout");
+      this.numberOfWishlist = 0;
       this.isShow = !this.isShow;
+      this.$store.dispatch("auth/logout");
+      this.$router.push("/sign-up")
+      // sessionStorage.removeItem("store")
     },
     parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -126,17 +136,21 @@ export default {
     return JSON.parse(jsonPayload);
 }
   },
+    computed: mapGetters(["getWishList"]),
   computed: {
+    getAllWishlist() {
+      return this.$store.getters.getWishList;
+    },
     currentUser() {
       // console.log(JSON.parse(localStorage.getItem("user")).token);
-      if (localStorage.getItem("user")) {
-              // console.log(this.$store.state.auth.user.role_id);
-              console.log(this.$store.state.auth.user);
-              // console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
-              // console.log(JSON.parse(localStorage.getItem("user")).token.split('.'));
-              // console.log(atob(JSON.parse(localStorage.getItem("user")).token.split('.')[1]));
-              // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
-      }
+      // if (localStorage.getItem("user")) {
+      //         // console.log(this.$store.state.auth.user.role_id);
+      //         // console.log(this.$store.state.auth.user);
+      //         // console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
+      //         // console.log(JSON.parse(localStorage.getItem("user")).token.split('.'));
+      //         // console.log(atob(JSON.parse(localStorage.getItem("user")).token.split('.')[1]));
+      //         // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
+      // }
 
       // return false;
       // console.log(this.state);
@@ -162,6 +176,16 @@ export default {
       // }
       // return false;
     },
+    isMember() {
+      if (this.currentUser && this.currentUser["role"] == 3) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 2) {
+      //   return true;
+      // }
+      // return false;
+    },
     isMobileSign() {
       return window.innerWidth;
     },
@@ -175,6 +199,13 @@ export default {
     },
   },
   mounted() {
+    EventBus.on("logout", () => {
+      this.logOut();
+    });
+    if (this.isMember) {
+          this.getWishListToStore();
+    }
+        // this.getWishListToStore();
     window.addEventListener("scroll", () => {
       if (window.scrollY > document.getElementById("nav").offsetTop) {
         document.getElementById("nav").classList.add("sticky");
@@ -186,6 +217,29 @@ export default {
       window.scrollTo(0, 0);
     });
   },
+  beforeDestroy() {
+    EventBus.remove("logout");
+  },
+  created() {
+    
+    // axios.interceptors.response.use(undefined, (err) => {
+    //   return new Promise((resolve,reject) => {
+    //     if (err.state = 401 && err.config && !err.config.__isRetryRequest) {
+    //       this.logOut();
+    //       this.$router("/sign-up");
+    //     }
+    //     throw err;
+    //   });
+    // });
+        // Read sessionStorage on page load
+    // if (sessionStorage.getItem('store')) {
+    //   this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))))
+    // }
+    // // Save the store to sessionStorage when the page is refreshed
+    // window.addEventListener('beforeunload', () => {
+    //   sessionStorage.setItem('store', JSON.stringify(this.$store.state))
+    // })
+  }
 };
 </script>
 
@@ -341,7 +395,17 @@ export default {
 .wishlist .number {
   font-size: 1rem;
   top: 0%;
+  margin-left: 1rem;
+  padding: 0.1rem 0.4rem;
+  background-color: #eb435f;
+  border-radius: 1rem;
   position: absolute;
+  color: #fff;
+  text-align: center;
+}
+
+.wishlistCount {
+  display: flex;
 }
 
 @media (max-width: 84em) {
