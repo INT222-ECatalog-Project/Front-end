@@ -7,9 +7,7 @@
             <div class="sub-heading">more &amp; more</div>
             <div class="secondary-header">Add product</div>
           </div>
-
           <form @submit.prevent="addProduct" action="#" class="form">
-            <!-- component -->
             <div class="display-img">
               <label class="add-img" for="upload" v-if="preview_img == ''">
                 <input
@@ -146,7 +144,7 @@
                   :style="[
                     formIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
                   ]"
                   class="btn btn--full"
                   type="submit"
@@ -155,7 +153,6 @@
                 </button>
               </div>
             </div>
-            <!-- ----- -->
           </form>
         </div>
       </div>
@@ -599,8 +596,8 @@ textarea:focus {
     height: 48rem;
   }
   .display-img img{
-        width: 50%;
-    margin: 0 25%;
+    width: 90%;
+    margin: 0 5%;
     height: 48rem;
   }
   

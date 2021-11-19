@@ -90,7 +90,7 @@
                 <option value="">none</option>
                 <option
                   v-for="brand in allBrands"
-                  :key="brand.id"
+                  :key="brand.brand_id"
                   :value="brand.brand_name"
                   >{{ brand.brand_name }} ({{
                     numberOfProductByBrand(brand.brand_name)
@@ -108,7 +108,7 @@
                 <option value="">none</option>
                 <option
                   v-for="category in allCategories"
-                  :key="category.id"
+                  :key="category.category_id"
                   :value="category.category_name"
                   >{{ category.category_name }} ({{
                     numberOfProductByCategory(category.category_name)
@@ -158,6 +158,8 @@
               :key="product.product_id"
               :product="product"
               @deleteProduct="handleDelete"
+              @toggleWishList="addWishList"
+              @toggleWishListDelete="deleteWishList"
               v-show="setPaginate(index)"
             ></Card>
             <div class="not-found" v-if="queryProducts.length == 0">
@@ -213,7 +215,6 @@ export default {
         autoplay: "playing",
       },
       productUrl: this.$store.state.defaultUrl + "/products",
-      // urlColors: "http://localhost:3000/colors",
       products: [],
       colors: [],
       searchInput: "",
@@ -256,6 +257,9 @@ export default {
     addWishList(product) {
       this.$store.dispatch("addToWishList", product);
     },
+    deleteWishList(product) {
+       this.$store.dispatch("deleteFromWishlist", product);
+    },
     changeImage(id) {
       for (let index = 0; index < this.slotImages.length; index++) {
         if (this.slotImages[index].show === true) {
@@ -266,16 +270,26 @@ export default {
       this.slotImages[this.cursor - 1].show = true;
     },
     numberOfProductByBrand(name) {
-      var brandCount = this.products.filter((product) =>
+      try {
+        var brandCount = this.getAllproducts.filter((product) =>
         product.brand.brand_name.toLowerCase().includes(name.toLowerCase())
       );
       return brandCount.length;
+      } catch (error) {
+        // console.log(error);
+        this.$router.push("/stores")
+      }
     },
     numberOfProductByCategory(category) {
-      var categoryCount = this.products.filter((product) =>
+      try {
+        var categoryCount = this.getAllproducts.filter((product) =>
         product.category.category_name.includes(category)
       );
       return categoryCount.length;
+      } catch (error) {
+                // console.log(error);
+        this.$router.push("/stores")
+      }
     },
     setPaginate(i) {
       if (this.current == 1) {
@@ -356,7 +370,7 @@ export default {
       });
     },
     pageTotal() {
-      return Math.ceil((this.queryProducts.length - 1) / this.paginate);
+      return Math.ceil((this.queryProducts.length) / this.paginate);
     },
   },
   created() {
@@ -658,15 +672,19 @@ select {
   color: rgb(85, 85, 85, 0.35);
 }
 .brand-filter-mb {
+  width: 100%;
   display: none;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-  overflow: hidden;
+  /* flex-wrap: wrap; */
+  gap: 1rem;
+  overflow: scroll;
 }
 
 .filter-mb {
+  align-self: center;
+  text-align: center;
+  line-height: 1.2;
   width: auto;
-  height: 3.6rem;
+  height: auto;
   background-color: #fff;
   font-size: 1.4rem;
   padding: 1rem 1.2rem;

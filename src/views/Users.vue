@@ -98,7 +98,7 @@
                 <span v-if="!editEmailIsValid">*required</span>
               </label>
               <input
-                type="text"
+                type="email"
                 id="email"
                 name="email"
                 placeholder="example@mail.com"
@@ -155,6 +155,37 @@
                 </div>
               </div>
             </div>
+            <div class="password">
+              <label for="password-admin"
+                >Admin password
+                <span v-if="!editPasswordIsValid"
+                  >*required</span
+                >
+              </label>
+              <input
+                :type="type"
+                id="password-admin"
+                name="password-admin"
+                placeholder="*********"
+                v-model="form.adminPassword"
+              />
+              <div class="btn-eye" @click="togglePassword">
+                <div
+                  :style="[
+                    type === 'text' ? { display: 'none' } : { display: 'flex' },
+                  ]"
+                >
+                  <i class="fas fa-eye icon"></i>
+                </div>
+                <div
+                  :style="[
+                    type !== 'text' ? { display: 'none' } : { display: 'flex' },
+                  ]"
+                >
+                  <i class="fas fa-eye-slash icon"></i>
+                </div>
+              </div>
+            </div>
             <div class="role">
               <label for="role"
                 >Role
@@ -165,7 +196,7 @@
                 <option
                   :value="role.role_id"
                   v-for="role in getAdminRoles"
-                  :key="role.id"
+                  :key="role.role_id"
                   >{{ role.role_name }}</option
                 >
               </select>
@@ -178,7 +209,11 @@
               :style="[
                 editFormIsValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    },
               ]"
             >
               Add
@@ -191,7 +226,11 @@
               :style="[
                 editFormIsValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    },
               ]"
             >
               Confirm edit
@@ -268,7 +307,7 @@
             :key="user.account_id"
             :user="user"
             @deleteAccountById="handleDelete"
-            @editAccountById="toggleEditAccount(user)"
+            @editAccountById="handleEdit"
             v-show="setPaginate(index)"
           ></List>
         </transition-group>
@@ -285,7 +324,6 @@
                 <td>{{ user.last_name }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <!-- <td>{{ user.password }}</td> -->
                 <td v-if="user.role_id == 1">Admin</td>
                 <td v-if="user.role_id == 2">Deputy Admin</td>
                 <td v-if="user.role_id == 3">Member</td>
@@ -329,6 +367,13 @@
         {{ page_index }}
       </div>
     </div>
+    <div class="modal" v-if="failedCreate">
+      <Popup
+        @closePopup="failedCreate = false"
+        :text="failedCreateText"
+        :isTrue="false"
+      />
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -338,6 +383,7 @@ import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import List from "@/components/List.vue";
 import Table from "@/components/Table.vue";
+import Popup from "@/components/Popup.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
   name: "Users",
@@ -346,19 +392,24 @@ export default {
     Footer,
     List,
     Table,
+    Popup,
   },
   data() {
     return {
+      failedCreate: false,
+      failedCreateText: "This username has already used",
       current: 1,
       paginate: 10,
       type: "password",
       isEdit: false,
       users: [],
+      allUsername: "",
       searchInput: "",
       selectedRole: "",
       adminFilter: false,
       deputyAdminFilter: false,
       memberFilter: false,
+      confirmPassword: "",
       ths: ["No", "First Name", "Last Name", "Username", "Email", "Role"],
       form: {
         id: "",
@@ -367,6 +418,7 @@ export default {
         username: "",
         email: "",
         password: "",
+        adminPassword:"",
         role: "",
       },
     };
@@ -419,7 +471,6 @@ export default {
         this.form.surname = editAccount.last_name;
         this.form.username = editAccount.username;
         this.form.email = editAccount.email;
-        // this.form.password = editAccount.password;
         this.form.role = editAccount.role_id;
       } else {
         this.form.id = "";
@@ -438,65 +489,119 @@ export default {
       }
     },
     editAccount() {
-      if (this.editFormIsValid) {
-        const index = this.getAllUsers.findIndex(
-          (account) => account.account_id == this.form.id
-        );
-        if (index !== -1) {
-          const editAccount = {
-            account_id: this.form.id,
+        if (this.editFormIsValid && this.checkUniqueUsername != true) {
+          const index = this.getAllUsers.findIndex(
+            (account) => account.account_id == this.form.id
+          );
+          if (index !== -1) {
+            const editAccount = {
+              account_id: this.form.id,
+              first_name: this.form.name,
+              last_name: this.form.surname,
+              username: this.form.username,
+              email: this.form.email,
+              userPassword: this.form.password,
+              adminPassword: this.form.adminPassword,
+              role_id: this.form.role,
+            };
+            let user = JSON.parse(localStorage.getItem("user"));
+            const jsonEditAccount = JSON.stringify(editAccount, {
+              type: "application/json",
+            });
+            fetch(
+              this.$store.state.accountActionURL + "/" + editAccount.account_id,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-type": "application/json",
+                  Authorization: "Bearer " + user.token,
+                },
+                body: jsonEditAccount,
+              }
+            )
+              .then((response) => {
+                if (response.status === 200) {
+                  this.$store.getters.getAccounts.splice(index, 1, editAccount);
+                } else {
+                  alert("❌Invalid admin password❌");
+                }
+              })
+              .catch((err) => console.log(err));
+            this.isEdit = false;
+            this.form.account_id = "";
+            this.form.name = "";
+            this.form.surname = "";
+            this.form.username = "";
+            this.form.email = "";
+            this.form.password = "";
+            this.form.adminPassword = "";
+            this.form.role = "";
+          }
+        } else {
+          this.form.password = "";
+          this.form.adminPassword = "";
+          this.failedCreate = true;
+        }
+    },
+    createAccount() {
+        if (this.editFormIsValid && this.checkUniqueUsername != true) {
+          const newAccount = {
             first_name: this.form.name,
             last_name: this.form.surname,
             username: this.form.username,
             email: this.form.email,
             password: this.form.password,
             role_id: this.form.role,
+            adminPassword: this.form.adminPassword,
           };
-          // console.log(this.form.id);
-          this.getAllUsers.splice(index, 1, editAccount);
-          // console.log(this.queryUsers);
-          this.$store.dispatch("editAccountByAdmin", editAccount);
-          this.isEdit = false;
-          this.form.account_id = "";
+          const jsonAccount = JSON.stringify(newAccount, {
+            type: "application/json",
+          });
+          let user = JSON.parse(localStorage.getItem("user"));
+          fetch(this.$store.state.accountAddURL, {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + user.token,
+            },
+            body: jsonAccount,
+          })
+            .then((res) => {
+              if (res.status == 400) {
+                this.$store.dispatch("auth/logout");
+                router.push("/sign-up");
+              }
+              if (res.status == 403) {
+                alert("❌Invalid admin password❌");
+              }
+              if (res.status == 200) {
+                this.getAllUsers.push(newAccount);
+                // this.$router.go();
+              }
+            })
+            .catch((err) => console.log(err));
           this.form.name = "";
           this.form.surname = "";
           this.form.username = "";
           this.form.email = "";
           this.form.password = "";
           this.form.role = "";
+          this.form.adminPassword = "";
+        } else {
+          this.form.password = "";
+          this.form.adminPassword = "";
+          this.failedCreate = true;
         }
-      } else {
-      }
     },
-    createAccount() {
-      if (this.editFormIsValid) {
-        const newAccount = {
-          first_name: this.form.name,
-          last_name: this.form.surname,
-          username: this.form.username,
-          email: this.form.email,
-          password: this.form.password,
-          role_id: this.form.role,
-        };
-        this.$store
-          .dispatch("createAccount", newAccount)
-          .catch((err) => console.log(err));
-        this.form.name = "";
-        this.form.surname = "";
-        this.form.username = "";
-        this.form.email = "";
-        this.form.password = "";
-        this.form.role = "";
-      } else {
-      }
-    },
-    // in card compo
+    // in list compo
     handleDelete(id) {
       this.getAllUsers = this.getAllUsers.filter((user) => {
-        return user.id != id;
+        return user.account_id != id;
       });
     },
-    handleEdit(user) {},
+    handleEdit(user) {
+      this.toggleEditAccount(user);
+    },
     setPaginate(i) {
       if (this.current == 1) {
         return i < this.paginate;
@@ -560,13 +665,36 @@ export default {
       );
     },
     editEmailIsValid() {
-      return !!this.form.email;
+      return !!this.form.email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.email);
     },
     editPasswordIsValid() {
       return !!this.form.password && this.form.password.length >= 8;
     },
+    editAdminPasswordIsValid() {
+      return !!this.form.adminPassword && this.form.adminPassword.length >= 8;
+    },
     editRoleIsValid() {
       return !!this.form.role;
+    },
+    checkUniqueUsername() {
+      for (let index = 0; index < this.allUsername.length; index++) {
+        if (this.isEdit == true) {
+          if (
+            this.$store.getters.getAccounts[index].account_id != this.form.id &&
+            this.allUsername[index].username.toLowerCase() == this.form.username.toLowerCase()
+          ) {
+            return true;
+          }
+        } else {
+          if (
+            this.allUsername[index].username.toLowerCase() ==
+            this.form.username.toLowerCase()
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
     },
     editFormIsValid() {
       return (
@@ -576,11 +704,14 @@ export default {
         this.editSurnameIsValid &&
         this.editNameIsValid &&
         this.noSpecialChars &&
+        this.editAdminPasswordIsValid &&
         this.editRoleIsValid
       );
     },
     pageTotal() {
-      return Math.ceil((this.getAllUsers.length - 1) / this.paginate);
+      if (this.getAllUsers) {
+        return Math.ceil(this.getAllUsers.length / this.paginate);
+      }
     },
   },
   // created() {
@@ -591,10 +722,27 @@ export default {
     window.scrollTo(0, 0);
     await this.getAccountsToSite();
     await this.getRolesToSite();
+    fetch(this.$store.state.usernameURL)
+      .then((res) => res.json())
+      .then((data) => {
+        this.allUsername = data.data;
+      })
+      .catch((err) => console.log(err.message));
   },
 };
 </script>
 <style scoped>
+.modal {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.25);
+  left: 0;
+  top: 0;
+  padding-top: 20rem;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
 .Users {
   margin: 3.6rem 0 4.8rem 0;
 }

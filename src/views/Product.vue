@@ -9,11 +9,11 @@
         </div>
         <div class="product-details grid grid--2-cols">
           <div class="img-product">
-            <div
+            <div v-if="isMember"
               class="like-icon"
               @click="toggleWishList"
               :style="
-                product.isWishList == true
+                isWishList == true
                   ? { color: '#eb435f' }
                   : { color: 'grey' }
               "
@@ -64,6 +64,7 @@
 <script>
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
+import authHeader from "../services/auth-header";
 export default {
   props: ["id"],
   name: "Product",
@@ -77,7 +78,11 @@ export default {
       urlProductShow: this.$store.state.defaultUrl+ "/products/" + this.id,
       product: {},
       brand: "",
-      date:""
+      date:"",
+      heart: false,
+      wishlistUrl: this.$store.state.wishlistUrl+"/",
+      isWishList:false,
+      wishlist:null,
     };
   },
   methods: {
@@ -86,16 +91,30 @@ export default {
     },
     deleteProduct() {
       if (confirm("Do you really want to delete? 😲")) {
-        this.$store.dispatch("deleteProduct", this.product.product_id);
+        this.$store.dispatch("deleteProduct", this.id);
         this.$router.push("/stores");
       }
     },
     toggleWishList() {
-      this.product.isWishList = !this.product.isWishList;
-      this.$store.dispatch("setProductWishList", this.product);
+      if (this.isWishList) {
+        this.$store.dispatch("deleteFromWishlist", this.id);
+        this.isWishList = false;
+      }else{
+        this.$store.dispatch("addToWishList", this.product);
+        this.isWishList = true;
+      }
     },
   },
   computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isMember() {
+      if (this.currentUser && this.currentUser["role"] == 3) {
+        return true;
+      }
+      return false;
+    },
     currentUser() {
       return this.$store.state.auth.user;
     },
@@ -115,13 +134,35 @@ export default {
   mounted() {
     window.scrollTo(0, 0);
     fetch(this.urlProductShow)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 404) {
+          alert("This product is not released yet")
+          this.$router.go(-1)
+        }
+        return res.json()
+        })
       .then((data) => {
         this.product = data.data;
-        this.brand = this.product.brand.brand_name;
+        this.brand = data.data.brand.brand_name;
         this.date = data.data.release_date;
       })
       .catch((err) => console.log(err.message));
+    if (this.isMember) {
+    fetch(this.wishlistUrl,{
+        headers: authHeader(),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          this.wishlist = data.data;
+          for (let index = 0; index < this.wishlist.length; index++) {
+            if (this.wishlist[index].product_id == this.id) {
+              this.isWishList = true;
+            }
+          }
+        })
+        .catch((err) => console.log(err.message));
+      }
+
   },
 };
 </script>
@@ -250,7 +291,6 @@ export default {
 }
 
 .btn--full {
-  /* margin-top: 2.4rem; */
   background-color: #333;
   color: white;
   transition: 0.3s all ease-in-out;
@@ -272,6 +312,7 @@ export default {
   box-shadow: none;
 }
 .prod_colors {
+  flex-wrap: wrap;
   display: flex;
   gap: 0.4rem;
   margin-bottom: 2.4rem;
@@ -363,9 +404,6 @@ export default {
     margin: 0 5% 2.4rem 5%;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 0px 0px -5px,
       rgba(0, 0, 0, 0.3) 0px 0px 16px -8px;
-    /* position:absolute;
-    left:0;
-    right:0; */
   }
   .prod_name {
     font-size: 1.8rem;

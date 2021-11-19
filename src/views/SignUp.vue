@@ -39,7 +39,7 @@
                 <input
                   :type="type"
                   name="password"
-                  id="password"
+                  id="password-sign-in"
                   placeholder="*******"
                   v-model="form.sign_in_password"
                 />
@@ -72,7 +72,7 @@
               :style="
                 signInUsernameisValid && signInPasswordisValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' }
+                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' }
               "
             >
               Sign in
@@ -216,7 +216,7 @@
                 <input
                   :type="type"
                   name="password"
-                  id="password"
+                  id="password-sign-up"
                   placeholder="*******"
                   v-model="form.sign_up_password"
                   :style="[
@@ -258,7 +258,7 @@
               :style="[
                 signUpFormIsValid
                   ? { backgroundColor: '#333' }
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
               ]"
             >
               Sign up
@@ -346,15 +346,23 @@ export default {
         sign_up_email: "",
         sign_up_password: "",
       },
+      allUsername:""
     };
   },
-  computed: mapGetters(["getAccounts"]),
+  computed: mapGetters(["getAccounts","getUsernames"]),
   mounted() {
     window.scrollTo(0, 0);
     if (this.loggedIn) {
       this.$router.push("/stores");
     }
     this.getAccountsToSite();
+    this.getAllUsernames();
+          fetch(this.$store.state.usernameURL)
+        .then((res) => res.json())
+        .then((data) => {
+          this.allUsername = data.data
+        })
+        .catch((err) => console.log(err.message));
   },
   created() {
     if (this.loggedIn) {
@@ -362,8 +370,11 @@ export default {
     }
   },
   computed: {
-    getAllUsers() {
+    getAllUsersToSite() {
       return this.$store.getters.getAccounts;
+    },
+    getAllUsername() {
+      return this.$store.getters.getUsernames;
     },
     signInUsernameisValid() {
       return !!this.form.sign_in_username;
@@ -372,8 +383,8 @@ export default {
       return !!this.form.sign_in_password;
     },
     checkUniqueUsername() {
-      for (let index = 0; index < this.getAllUsers.length; index++) {
-        if (this.getAllUsers[index].username == this.form.sign_up_username) {
+      for (let index = 0; index < this.allUsername.length; index++) {
+        if (this.allUsername[index].username.toLowerCase() == this.form.sign_up_username.toLowerCase()) {
           return true;
         }
       }
@@ -400,7 +411,7 @@ export default {
       );
     },
     signUpEmailIsValid() {
-      return !!this.form.sign_up_email;
+      return !!this.form.sign_up_email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.sign_up_email);
     },
     signUpPasswordIsValid() {
       return (
@@ -422,7 +433,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getAccountsToSite"]),
+    ...mapActions(["getAccountsToSite","getAllUsernames"]),
     goBack() {
       this.$router.go(-1);
     },
@@ -455,6 +466,7 @@ export default {
           (this.form.sign_up_password = "");
         this.successSignUp = true;
       } else {
+        this.form.sign_in_password = "";
         this.failedSignUp = true;
       }
     },
@@ -466,10 +478,12 @@ export default {
       this.loading = true;
       this.$store.dispatch("auth/login", user).then(
         () => {
+          window.location.reload();
           this.$router.push("/stores");
         },
         (err) => {
           this.loading = false;
+          this.form.sign_in_password = "";
           this.failedSignIn = true;
           this.message =
             (err.respose && err.response.data && err.response.data.message) ||
@@ -479,28 +493,6 @@ export default {
         }
       );
     },
-    // handleRegister(user) {
-    //   this.message = "";
-    //   this.successful = false;
-    //   this.loading = true;
-    //   this.$store.dispatch("auth/register", user).then(
-    //     (data) => {
-    //       this.message = data.message;
-    //       this.successful = true;
-    //       this.loading = false;
-    //     },
-    //     (error) => {
-    //       this.message =
-    //         (error.respose.data &&
-    //           error.respose.data &&
-    //           error.response.data.message) ||
-    //         error.message ||
-    //         error.toString();
-    //       this.successful = false;
-    //       this.loading = false;
-    //     }
-    //   );
-    // },
   },
 };
 </script>

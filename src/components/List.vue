@@ -39,7 +39,7 @@
         <button
           class="btn btn-edit"
           type="submit"
-          @click="editAccount"
+          @click="editAccount(user.account_id)"
           v-if="user.role_id != 3"
         >
           <span class="edit-text">edit</span><i class="edit fas fa-pen"></i>
@@ -59,12 +59,12 @@ export default {
   methods: {
     deleteAccount(id) {
       if (confirm("Do you really want to delete? 😲")) {
-        this.$store.dispatch("deleteAccount", id);
+        this.$store.dispatch("deleteAccountByAdmin", id);
         this.$emit("deleteAccountById", id);
       }
     },
     editAccount() {
-      this.$emit("editAccountById");
+      this.$emit("editAccountById",this.user);
     },
   },
 };

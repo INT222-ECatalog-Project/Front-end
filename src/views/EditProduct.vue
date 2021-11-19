@@ -8,7 +8,6 @@
             <div class="secondary-header">Edit product</div>
           </div>
           <form @submit.prevent="editProductConfirm" action="#" class="form">
-            <!-- component -->
             <div class="display-img">
               <label class="add-img" for="upload" v-if="form.edit_img == ''">
                 <input
@@ -162,7 +161,7 @@
                   :style="[
                     formIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
                   ]"
                   class="btn btn--full"
                   type="submit"
@@ -171,7 +170,6 @@
                 </button>
               </div>
             </div>
-            <!-- /component -->
           </form>
         </div>
       </div>
@@ -209,7 +207,6 @@ export default {
       urlColors: this.$store.state.defaultUrl + "/colors",
       colors: [],
       editId: this.id,
-      // edit product
       form: {
         edit_name: "",
         edit_desc: "",
@@ -219,12 +216,10 @@ export default {
         edit_date: "",
         edit_img: "",
         prod_img: "",
-        // edit_img_name:"",
         edit_colors: [],
       },
 
       former_colors: [],
-      // preview image
       preview_img: "",
       name_img: "",
     };
@@ -244,7 +239,6 @@ export default {
     uploadImage(e) {
       const image = e.target.files[0];
       this.form.prod_img = e.target.files[0];
-      // console.log(this.form.prod_img);
       this.form.edit_img = image.name;
       const reader = new FileReader();
       reader.readAsDataURL(image);
@@ -257,7 +251,6 @@ export default {
       for (var i = 0; i < this.form.edit_colors.length; i++) {
         colors.push({ id: this.form.edit_colors[i] });
       }
-      // console.log(colors);
       if (this.formIsValid && this.checkUniqueProdName != true) {
         const editProduct = {
           product_name: this.form.edit_name,
@@ -269,7 +262,6 @@ export default {
           color_id: colors,
           image: this.form.edit_img,
         };
-        // console.log(editProduct)
         this.$store
           .dispatch("editProduct", {
             editProduct: editProduct,
@@ -286,7 +278,6 @@ export default {
           (this.form.edit_colors = []),
           (this.form.edit_img = ""),
           (this.preview_img = ""),
-          // (this.form.edit_img_name = ""),
           (this.name_img = "");
         this.$router.push(`/stores/product/${this.id}`);
       } else {

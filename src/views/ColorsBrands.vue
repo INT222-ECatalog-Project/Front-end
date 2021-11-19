@@ -11,7 +11,10 @@
             <div class="switch-btn">
               <div
                 class="btn-colors"
-                @click="isShow = !isShow; current = 1"
+                @click="
+                  isShow = !isShow;
+                  current = 1;
+                "
                 :style="[
                   isShow == true
                     ? { backgroundColor: '#eb435f', color: 'white' }
@@ -22,7 +25,10 @@
               </div>
               <div
                 class="btn-brands"
-                @click="isShow = !isShow; current = 1"
+                @click="
+                  isShow = !isShow;
+                  current = 1;
+                "
                 :style="[
                   isShow == false
                     ? { backgroundColor: '#eb435f', color: 'white' }
@@ -33,11 +39,9 @@
               </div>
             </div>
           </div>
-          <!-- Colors -->
           <transition name="slide-fade">
             <div class="table" v-if="isShow">
               <div class="tertiary-header">Colors</div>
-              <!-- addForm -->
               <div v-if="isAdmin">
                 <form
                   class="color-inputs"
@@ -92,7 +96,11 @@
                     :style="[
                       addColorFormIsValid
                         ? { backgroundColor: '#333' }
-                        : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                        : {
+                            backgroundColor: '#707070',
+                            cursor: 'not-allowed',
+                            pointerEvents: 'none',
+                          },
                     ]"
                     class="btn btn--full"
                   >
@@ -100,9 +108,6 @@
                   </button>
                 </form>
               </div>
-              <!-- /addForm -->
-
-              <!-- editForm -->
               <form
                 v-if="isEditColor"
                 class="color-inputs"
@@ -157,13 +162,16 @@
                   :style="[
                     editColorFormIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : {
+                          backgroundColor: '#707070',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
                   ]"
                 >
                   Edit Color
                 </button>
               </form>
-              <!-- /editForm -->
               <Table :ths="thsColor">
                 <tbody
                   v-for="(color, index) in getAllColors"
@@ -202,12 +210,9 @@
               </Table>
             </div>
           </transition>
-          <!-- /Colors -->
-          <!-- Brands -->
           <transition name="slide-fade">
             <div class="table" v-if="isShow == false">
               <div class="tertiary-header">Brands</div>
-              <!-- addBrand -->
               <div v-if="isAdmin">
                 <form
                   class="color-inputs"
@@ -234,15 +239,17 @@
                     :style="[
                       addBrandNameIsValid
                         ? { backgroundColor: '#333' }
-                        : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                        : {
+                            backgroundColor: '#707070',
+                            cursor: 'not-allowed',
+                            pointerEvents: 'none',
+                          },
                     ]"
                   >
                     Add Brand
                   </button>
                 </form>
               </div>
-              <!-- /addBrand -->
-              <!-- editBrand -->
               <form
                 class="color-inputs"
                 @submit.prevent="editBrandById"
@@ -266,13 +273,16 @@
                   :style="[
                     editBrandNameIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : {
+                          backgroundColor: '#707070',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
                   ]"
                 >
                   Edit Brand
                 </button>
               </form>
-              <!-- /editBrand -->
               <Table :ths="thsBrand">
                 <tbody
                   v-for="(brand, index) in getAllBrands"
@@ -304,11 +314,9 @@
               </Table>
             </div>
           </transition>
-          <!-- /Brands -->
         </div>
       </div>
     </div>
-    <!-- component  popup -->
     <div class="modal" v-if="failedToAdd">
       <Popup
         @closePopup="failedToAdd = false"
@@ -323,7 +331,7 @@
         :isTrue="false"
       />
     </div>
-        <div id="pagination">
+    <div id="pagination">
       <div
         :style="[
           current == page_index
@@ -433,14 +441,18 @@ export default {
         for (let index = 0; index < this.getAllColors.length; index++) {
           if (
             this.getAllColors[index].color_id != this.edit_color_id &&
-            this.getAllColors[index].color_code == this.form.edit_color_code
+            this.getAllColors[index].color_code.toLowerCase() ==
+              this.form.edit_color_code.toLowerCase()
           ) {
             return true;
           }
         }
       } else {
         for (let index = 0; index < this.getAllColors.length; index++) {
-          if (this.getAllColors[index].color_code == this.form.color_code) {
+          if (
+            this.getAllColors[index].color_code.toLowerCase() ==
+            this.form.color_code.toLowerCase()
+          ) {
             return true;
           }
         }
@@ -471,9 +483,10 @@ export default {
         }
       }
     },
-        pageTotal() {
-          return this.isShow ?  Math.ceil((this.getAllColors.length - 1) / this.paginate) :  Math.ceil((this.getAllBrands.length - 1) / this.paginate);
-      // return Math.ceil((this.getAllUsers.length - 1) / this.paginate);
+    pageTotal() {
+      return this.isShow
+        ? Math.ceil(this.getAllColors.length / this.paginate)
+        : Math.ceil(this.getAllBrands.length / this.paginate);
     },
   },
 
@@ -517,7 +530,6 @@ export default {
           color_code: this.form.edit_color_code,
         };
         if (index !== -1) {
-          // this.colors.splice(index, 1, editColor);
           this.getAllColors.splice(index, 1, editColor);
           this.$store.dispatch("editColor", editColor);
           this.edit_color_id = "";
@@ -593,7 +605,7 @@ export default {
       this.form.edit_brand_name = this.getAllBrands[index].brand_name;
       this.isEditBrand = !this.isEditBrand;
     },
-     setPaginate(i) {
+    setPaginate(i) {
       if (this.current == 1) {
         return i < this.paginate;
       } else {
@@ -893,7 +905,7 @@ input[type="color"] {
     padding: 1rem;
   }
   tbody td {
-    padding: 1.8rem;
+    padding: 1rem;
   }
 }
 </style>

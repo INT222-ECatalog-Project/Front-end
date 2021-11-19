@@ -128,7 +128,7 @@
           />
           <img
             class="logo"
-            src="../../src/assets/images/brand-logos/HM.jpg"
+            src="../../src/assets/images/brand-logos/HM.png"
             alt="H&amp;M Logo"
           />
         </div>

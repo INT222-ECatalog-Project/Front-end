@@ -2,16 +2,27 @@
   <div class="card-component">
     <div class="product-img">
       <div
+        v-if="isMember"
         class="like-icon"
         @click="toggleWishList"
         :style="
-          $route.name == 'WishList' ? { color: '#eb435f' } : { color: 'grey' }
+          isWishList == true || $route.name == 'WishList'
+            ? { color: '#eb435f' }
+            : { color: 'grey' }
         "
       >
         <i class="icon fas fa-heart"></i>
       </div>
 
-      <img :src="urlImages" @error="$event.target.src='http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'"  alt="product images" @click="showDetails(product)"/>
+      <img
+        :src="urlImages"
+        @error="
+          $event.target.src =
+            'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+        "
+        alt="product images"
+        @click="showDetails(product)"
+      />
     </div>
     <div class="product-purchase">
       <div class="add-to-cart">
@@ -19,9 +30,9 @@
         <i class="fas fa-cart-plus"></i>
       </div>
     </div>
-    <div class="product-info">
+    <div class="product-info" v-if="$route.name != 'Profile'">
       <div class="product-brand">
-        {{ product.brand.brand_name }}
+        <div v-if="product.brand">{{ product.brand.brand_name }}</div>
       </div>
       <div class="product-name">
         {{ product.product_name }}
@@ -41,6 +52,8 @@
   </div>
 </template>
 <script>
+import { mapGetters, mapActions } from "vuex";
+import authHeader from "../services/auth-header";
 export default {
   name: "Card",
   props: ["product"],
@@ -51,16 +64,21 @@ export default {
       allColors: [],
       urlImages:
         this.$store.state.defaultUrl + "/image/" + this.product.product_id,
+      wishlistUrl: this.$store.state.wishlistUrl+"/",
+      isWishList: "",
+      wishlist:null,
     };
   },
   methods: {
+    ...mapActions(["getWishListToStore"]),
     toggleWishList() {
-      this.heart = !this.heart;
-      // console.log(this.heart)
-      const wishlist = {
-        product_id: this.product.product_id,
-      };
-      this.$emit("toggleWishList", wishlist);
+      if (this.isWishList) {
+        this.$emit('toggleWishListDelete',this.product.product_id)
+        this.isWishList = false;
+      }else{
+        this.$emit('toggleWishList',this.product)
+        this.isWishList = true;
+      }
     },
     showDetails(product) {
       this.$router.push({
@@ -71,13 +89,40 @@ export default {
       });
     },
   },
+  computed: mapGetters(["getWishList"]),
   computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isMember() {
+      if (this.currentUser && this.currentUser["role"] == 3) {
+        return true;
+      }
+      return false;
+    },
     getAllColors() {
       for (let index = 0; index < this.product.colors.length; index++) {
         this.allColors.push(this.product.colors[index].color_code);
       }
       return this.allColors;
     },
+  },
+  mounted() {
+    if (this.isMember) {
+    fetch(this.wishlistUrl,{
+        headers: authHeader(),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          this.wishlist = data.data;
+          for (let index = 0; index < this.wishlist.length; index++) {
+            if (this.wishlist[index].product_id == this.product.product_id) {
+              this.isWishList = true;
+            }
+          }
+        })
+        .catch((err) => console.log(err.message));
+      }
   },
 };
 </script>
