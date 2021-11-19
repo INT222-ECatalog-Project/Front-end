@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import Stores from '../views/Store.vue'
-import Product from '../views/Product.vue'
-import SignUp from '../views/SignUp.vue'
-import AddProduct from '../views/AddProduct.vue'
-import EditProduct from '../views/EditProduct.vue'
-import Users from '../views/Users.vue'
-import WishList from '../views/WishList.vue'
-import NotFound from '../views/NotFound.vue'
-import ColorsBrands from '../views/ColorsBrands.vue'
-import Profile from '../views/Profile.vue'
+const Home = () => import('../views/Home.vue');
+const Stores = () => import('../views/Store.vue');
+const Product = () => import('../views/Product.vue');
+const SignUp = () => import('../views/SignUp.vue');
+const AddProduct = () => import('../views/AddProduct.vue');
+const EditProduct = () => import('../views/EditProduct.vue');
+const Users = () => import('../views/Users.vue');
+const WishList = () => import('../views/WishList.vue');
+const NotFound = () => import('../views/NotFound.vue');
+const ColorsBrands = () => import('../views/ColorsBrands.vue');
+const Profile = () => import('../views/Profile.vue');
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
 const routes = [
@@ -83,7 +83,12 @@ const routes = [
     component: WishList,
     beforeEnter: ((to, from, next) => {
       const loggedIn = localStorage.getItem('user');
-      if (!loggedIn) {
+      let isMember;
+      if (loggedIn) {
+        isMember = JSON.parse(localStorage.getItem("user")).role
+      }
+      if (isMember != 3) {
+        alert("Please Sign in first 👌")
         next('/sign-up');
       } else {
         next();
@@ -96,12 +101,16 @@ const routes = [
     component: ColorsBrands,
     beforeEnter: ((to, from, next) => {
       const loggedIn = localStorage.getItem('user');
-      let isAdmin = JSON.parse(localStorage.getItem("user")).role;
-      let isDeputyAdmin = JSON.parse(localStorage.getItem("user")).role;
-      if (isAdmin != 1 && isDeputyAdmin != 2 && loggedIn) {
+      if (loggedIn) {
+        let isAdmin = JSON.parse(localStorage.getItem("user")).role;
+        let isDeputyAdmin = JSON.parse(localStorage.getItem("user")).role;
+        if (isAdmin != 1 && isDeputyAdmin != 2) {
+          next('/sign-up');
+        } else {
+          next();
+        }
+      }else{
         next('/sign-up');
-      } else {
-        next();
       }
     })
   },
