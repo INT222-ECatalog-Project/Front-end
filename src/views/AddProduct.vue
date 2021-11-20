@@ -7,9 +7,7 @@
             <div class="sub-heading">more &amp; more</div>
             <div class="secondary-header">Add product</div>
           </div>
-
           <form @submit.prevent="addProduct" action="#" class="form">
-            <!-- component -->
             <div class="display-img">
               <label class="add-img" for="upload" v-if="preview_img == ''">
                 <input
@@ -21,14 +19,7 @@
                 />
                 <i class="fas fa-plus-square"></i>
               </label>
-              <!-- <div
-                class="img-name"
-                v-if="!prodImageIsValid"
-                :style="{ color: '#eb435f' }"
-              >
-                *required image
-              </div> -->
-              <img :src="preview_img" alt="" v-else />
+              <img :src="preview_img" alt="" v-else class="preview-img" />
               <div class="img-name" v-if="form.name_img != ''">
                 {{ form.name_img }}
                 <span @click="changeImg"><i class="fas fa-times"></i></span>
@@ -153,7 +144,7 @@
                   :style="[
                     formIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
                   ]"
                   class="btn btn--full"
                   type="submit"
@@ -162,7 +153,6 @@
                 </button>
               </div>
             </div>
-            <!-- ----- -->
           </form>
         </div>
       </div>
@@ -170,9 +160,7 @@
     <div class="modal" v-if="failedToAdd">
       <Popup
         @closePopup="failedToAdd = false"
-        :imgSrc="failedImg"
-        :text="failedSignUpText"
-        :altText="altFailed"
+        :text="failedAddProductText"
         :isTrue="false"
       />
     </div>
@@ -194,14 +182,11 @@ export default {
   data() {
     return {
       failedToAdd: false,
-      failedImg: require("@/assets/images/failed.png"),
-      failedSignUpText: "this product name has already used",
-      altFailed: "Failed icon",
+      failedAddProductText: "This product name has already used",
       colors: [],
       productUrl: this.$store.state.defaultUrl + "/products",
       products: [],
       form: {
-        //add product
         prod_name: "",
         prod_desc: "",
         prod_price: null,
@@ -212,11 +197,15 @@ export default {
         prod_img: "",
         name_img: "",
       },
-      //preview image
       preview_img: "",
     };
   },
-  computed: mapGetters(["getColors", "getBrands", "getCategories"]),
+  computed: mapGetters([
+    "getColors",
+    "getBrands",
+    "getCategories",
+    "getProducts",
+  ]),
   computed: {
     allColors() {
       return this.$store.getters.getColors;
@@ -230,13 +219,11 @@ export default {
     allProducts() {
       return this.$store.getters.getProducts;
     },
-
-    // validations
     prodImageIsValid() {
       return !!this.form.prod_img;
     },
     prodNameIsValid() {
-      return !!this.form.prod_name;
+      return !!this.form.prod_name && this.form.prod_name.length <= 90;
     },
     prodDescIsValid() {
       return !!this.form.prod_desc;
@@ -303,7 +290,6 @@ export default {
       reader.readAsDataURL(image);
       reader.onload = (e) => {
         this.preview_img = e.target.result;
-        // this.form.prod_img = e.target.result;
       };
     },
     addProduct() {
@@ -322,8 +308,6 @@ export default {
           color_id: colors,
           image: this.form.name_img,
         };
-        // console.log(newProduct)
-        // console.log(this.form.prod_img)
         this.$store
           .dispatch("addProduct", {
             newProduct: newProduct,
@@ -380,7 +364,6 @@ export default {
   display: grid;
   grid-template-columns: 1fr 2fr;
   width: 100%;
-  /* padding: 3.6rem 4.8rem; */
   margin: 4.8rem 0;
 }
 
@@ -439,6 +422,11 @@ export default {
   transition: 0.2s all ease-in-out;
   cursor: pointer;
 }
+.preview-img {
+  width: 80%;
+  margin: 0 10%;
+  height: 100%;
+}
 
 .add-img:hover {
   opacity: 1;
@@ -487,7 +475,7 @@ label span {
 input {
   width: auto;
   border: none;
-  background: rgba(211, 211, 211, 0.55);
+  background: rgb(250, 250, 250);
   height: 2.8rem;
   padding: 0.4rem 0.6rem;
   color: #333;
@@ -538,7 +526,7 @@ textarea {
   height: auto;
   resize: none;
   border: none;
-  background: rgba(211, 211, 211, 0.55);
+  background: rgb(250, 250, 250);
 }
 
 textarea:focus {
@@ -597,13 +585,22 @@ textarea:focus {
 @media (max-width: 53em) {
   .form {
     grid-template-columns: 1fr;
-    row-gap: 3.2rem;
+    row-gap: 2rem;
+  }
+  .info-form {
+    margin-top: 1.2rem;
   }
   .add-img {
     width: 50%;
     margin: 0 25%;
-    height: 36rem;
+    height: 48rem;
   }
+  .display-img img{
+    width: 90%;
+    margin: 0 5%;
+    height: 48rem;
+  }
+  
 }
 
 /* below 530px */

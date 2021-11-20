@@ -8,7 +8,6 @@
             <div class="secondary-header">Edit product</div>
           </div>
           <form @submit.prevent="editProductConfirm" action="#" class="form">
-            <!-- component -->
             <div class="display-img">
               <label class="add-img" for="upload" v-if="form.edit_img == ''">
                 <input
@@ -32,7 +31,12 @@
                 alt=""
                 v-if="form.edit_img !== '' && preview_img == ''"
               />
-              <img :src="preview_img" alt="" v-if="preview_img" />
+              <img
+                :src="preview_img"
+                alt=""
+                v-if="preview_img"
+                class="preview-img"
+              />
               <div class="img-name" v-if="form.edit_img != ''">
                 {{ form.edit_img }}
                 <span @click="changeImg"><i class="fas fa-times"></i></span>
@@ -157,7 +161,7 @@
                   :style="[
                     formIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                      : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
                   ]"
                   class="btn btn--full"
                   type="submit"
@@ -166,10 +170,16 @@
                 </button>
               </div>
             </div>
-            <!-- /component -->
           </form>
         </div>
       </div>
+    </div>
+    <div class="modal" v-if="failedToEdit">
+      <Popup
+        @closePopup="failedToEdit = false"
+        :text="failedEditProductText"
+        :isTrue="false"
+      />
     </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
@@ -178,24 +188,25 @@
 <script>
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
+import Popup from "@/components/Popup.vue";
 import { mapGetters, mapActions } from "vuex";
-// import Form from "@/components/Form.vue";
 export default {
   components: {
     Socials,
     Footer,
-    // Form,
+    Popup,
   },
   props: ["id"],
   data() {
     return {
+      failedToEdit: false,
+      failedEditProductText: "This product name has already used",
       urlImages: this.$store.state.defaultUrl + "/image/" + this.id,
       editProduct: {},
       urlProductShow: this.$store.state.defaultUrl + "/products/" + this.id,
       urlColors: this.$store.state.defaultUrl + "/colors",
       colors: [],
       editId: this.id,
-      // edit product
       form: {
         edit_name: "",
         edit_desc: "",
@@ -205,12 +216,10 @@ export default {
         edit_date: "",
         edit_img: "",
         prod_img: "",
-        // edit_img_name:"",
         edit_colors: [],
       },
 
       former_colors: [],
-      // preview image
       preview_img: "",
       name_img: "",
     };
@@ -220,6 +229,7 @@ export default {
       "getColorToStore",
       "getBrandsToStore",
       "getCategoriesToStore",
+      "getProductsToStore",
     ]),
     changeImg() {
       this.form.edit_img = "";
@@ -241,8 +251,7 @@ export default {
       for (var i = 0; i < this.form.edit_colors.length; i++) {
         colors.push({ id: this.form.edit_colors[i] });
       }
-      // console.log(colors);
-      if (this.formIsValid) {
+      if (this.formIsValid && this.checkUniqueProdName != true) {
         const editProduct = {
           product_name: this.form.edit_name,
           product_desc: this.form.edit_desc,
@@ -253,7 +262,6 @@ export default {
           color_id: colors,
           image: this.form.edit_img,
         };
-        // console.log(editProduct)
         this.$store
           .dispatch("editProduct", {
             editProduct: editProduct,
@@ -270,14 +278,19 @@ export default {
           (this.form.edit_colors = []),
           (this.form.edit_img = ""),
           (this.preview_img = ""),
-          // (this.form.edit_img_name = ""),
           (this.name_img = "");
         this.$router.push(`/stores/product/${this.id}`);
       } else {
+        this.failedToEdit = true;
       }
     },
   },
-  computed: mapGetters(["getColors", "getBrands", "getCategories"]),
+  computed: mapGetters([
+    "getColors",
+    "getBrands",
+    "getCategories",
+    "getProducts",
+  ]),
   computed: {
     allColors() {
       return this.$store.getters.getColors;
@@ -288,13 +301,16 @@ export default {
     allCategories() {
       return this.$store.getters.getCategories;
     },
+    allProducts() {
+      return this.$store.getters.getProducts;
+    },
 
     // validations
     prodImageIsValid() {
       return !!this.form.edit_img;
     },
     prodNameIsValid() {
-      return !!this.form.edit_name;
+      return !!this.form.edit_name && this.form.edit_name.length <= 90;
     },
     prodDescIsValid() {
       return !!this.form.edit_desc;
@@ -330,13 +346,19 @@ export default {
         this.prodColorsIsValid
       );
     },
+    checkUniqueProdName() {
+      for (let index = 0; index < this.allProducts.length; index++) {
+        if (
+          this.allProducts[index].product_name == this.form.edit_name &&
+          this.allProducts[index].product_id != this.id
+        ) {
+          return true;
+        }
+      }
+    },
   },
   mounted() {
     window.scrollTo(0, 0);
-    // fetch(this.urlImages)
-    //   .then((res) => res)
-    //   .then((data) => (console.log(data)))
-    //   .catch((err) => console.log(err.message));
     fetch(this.urlColors)
       .then((res) => res.json())
       .then((data) => (this.colors = data.data))
@@ -347,7 +369,6 @@ export default {
       .then((data) => {
         // (this.editProduct = data.data),
         for (let index = 0; index < data.data.productdetail.length; index++) {
-          // console.log(data.data.productdetail[index].color_id);
           this.former_colors.push(data.data.productdetail[index].color_id);
         }
         (this.form.edit_name = data.data.product_name),
@@ -360,16 +381,10 @@ export default {
           (this.form.edit_img = data.data.image);
       })
       .then(() => {
-        // for (let index = 0; index < this.form.edit_colors.length; index++) {
-        //   this.former_colors.push(this.form.edit_colors[index].color);
-        // }
-        console.log(this.former_colors);
         const checkboxInput = document.getElementsByClassName("checkbox");
         for (let index = 0; index < checkboxInput.length; index++) {
           if (checkboxInput[index].value == this.former_colors[index]) {
-            // console.log(this.former_colors[index] + "sdfasdf");
             checkboxInput[index].checked = true;
-            // console.log(index);
             continue;
           }
         }
@@ -380,10 +395,22 @@ export default {
     this.getColorToStore();
     this.getBrandsToStore();
     this.getCategoriesToStore();
+    this.getProductsToStore();
   },
 };
 </script>
 <style scoped>
+.modal {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.25);
+  left: 0;
+  top: 0;
+  padding-top: 20rem;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
 .edit-product-section {
   margin: 2.4rem 0 6.4rem 0;
 }
@@ -469,16 +496,14 @@ export default {
   border: 2px dashed #fff;
   color: white;
 }
-
+.preview-img {
+  width: 80%;
+  margin: 0 10%;
+  height: 100%;
+}
 .info-form {
   width: 100%;
-  /* height: 48rem; ตอนเเก้ responsive ให้เปลี่ยนเป็น auto แทน */
   background-color: #fff;
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* flex-wrap: wrap; responsive => no-wrap */
-  /* row-gap: 2rem; */
-  /* column-gap: 3.6rem; */
   padding: 3.6rem 4.8rem;
   box-shadow: rgba(70, 50, 50, 0.08) 0px 4px 6px -1px,
     rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
@@ -516,7 +541,7 @@ label span {
 input {
   width: auto;
   border: none;
-  background: rgba(211, 211, 211, 0.25);
+  background: rgb(250, 250, 250);
   height: 2.8rem;
   padding: 0.4rem 0.6rem;
   color: #333;
@@ -573,7 +598,7 @@ textarea {
   height: auto;
   resize: none;
   border: none;
-  background: rgba(211, 211, 211, 0.25);
+  background: rgb(250, 250, 250);
 }
 
 textarea:focus {
@@ -634,10 +659,25 @@ textarea:focus {
     grid-template-columns: 1fr;
     row-gap: 3.2rem;
   }
+  .info-form {
+    margin-top: 1.2rem;
+  }
+   .form {
+    grid-template-columns: 1fr;
+    row-gap: 2rem;
+  }
+  .info-form {
+    margin-top: 1.2rem;
+  }
   .add-img {
     width: 50%;
     margin: 0 25%;
-    height: 36rem;
+    height: 48rem;
+  }
+  .display-img img{
+        width: 50%;
+    margin: 0 25%;
+    height: 48rem;
   }
 }
 

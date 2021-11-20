@@ -9,11 +9,11 @@
         </div>
         <div class="product-details grid grid--2-cols">
           <div class="img-product">
-            <div
+            <div v-if="isMember"
               class="like-icon"
               @click="toggleWishList"
               :style="
-                product.isWishList == true
+                isWishList == true
                   ? { color: '#eb435f' }
                   : { color: 'grey' }
               "
@@ -46,10 +46,10 @@
               >Add to cart <i class="icon fas fa-cart-plus"></i
             ></a>
             <div class="action-btn">
-              <router-link :to="{ name: 'EditProduct', params: { id: id } }"
+              <router-link v-if="isAdmin || isDeputyAdmin" :to="{ name: 'EditProduct', params: { id: id } }"
                 ><div class="btn btn--ghost">Edit</div></router-link
               >
-              <div class="btn btn--full" @click="deleteProduct(product)">
+              <div v-if="isAdmin" class="btn btn--full" @click="deleteProduct(product)">
                 Delete
               </div>
             </div>
@@ -64,6 +64,7 @@
 <script>
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
+import authHeader from "../services/auth-header";
 export default {
   props: ["id"],
   name: "Product",
@@ -77,7 +78,11 @@ export default {
       urlProductShow: this.$store.state.defaultUrl+ "/products/" + this.id,
       product: {},
       brand: "",
-      date:""
+      date:"",
+      heart: false,
+      wishlistUrl: this.$store.state.wishlistUrl+"/",
+      isWishList:false,
+      wishlist:null,
     };
   },
   methods: {
@@ -86,29 +91,85 @@ export default {
     },
     deleteProduct() {
       if (confirm("Do you really want to delete? 😲")) {
-        this.$store.dispatch("deleteProduct", this.product.product_id);
+        this.$store.dispatch("deleteProduct", this.id);
         this.$router.push("/stores");
       }
     },
     toggleWishList() {
-      this.product.isWishList = !this.product.isWishList;
-      this.$store.dispatch("setProductWishList", this.product);
+      if (this.isWishList) {
+        this.$store.dispatch("deleteFromWishlist", this.id);
+        this.isWishList = false;
+      }else{
+        this.$store.dispatch("addToWishList", this.product);
+        this.isWishList = true;
+      }
+    },
+  },
+  computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isMember() {
+      if (this.currentUser && this.currentUser["role"] == 3) {
+        return true;
+      }
+      return false;
+    },
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser['role']==1) {
+        return true
+      }
+      return false;
+    },
+    isDeputyAdmin() {
+      if (this.currentUser && this.currentUser['role']==2) {
+        return true
+      }
+      return false;
     },
   },
   mounted() {
     window.scrollTo(0, 0);
     fetch(this.urlProductShow)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 404) {
+          alert("This product is not released yet")
+          this.$router.go(-1)
+        }
+        return res.json()
+        })
       .then((data) => {
         this.product = data.data;
-        this.brand = this.product.brand.brand_name;
+        this.brand = data.data.brand.brand_name;
         this.date = data.data.release_date;
       })
       .catch((err) => console.log(err.message));
+    if (this.isMember) {
+    fetch(this.wishlistUrl,{
+        headers: authHeader(),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          this.wishlist = data.data;
+          for (let index = 0; index < this.wishlist.length; index++) {
+            if (this.wishlist[index].product_id == this.id) {
+              this.isWishList = true;
+            }
+          }
+        })
+        .catch((err) => console.log(err.message));
+      }
+
   },
 };
 </script>
 <style scoped>
+.section{
+  margin-top: 3.6rem;
+}
 .container {
   position: relative;
 }
@@ -230,7 +291,6 @@ export default {
 }
 
 .btn--full {
-  /* margin-top: 2.4rem; */
   background-color: #333;
   color: white;
   transition: 0.3s all ease-in-out;
@@ -252,6 +312,7 @@ export default {
   box-shadow: none;
 }
 .prod_colors {
+  flex-wrap: wrap;
   display: flex;
   gap: 0.4rem;
   margin-bottom: 2.4rem;
@@ -276,6 +337,7 @@ export default {
   position: absolute;
   z-index: 1;
   font-size: 1.2rem;
+  margin-top: 2.4rem;
 }
 .like-icon {
   z-index: 99;
@@ -293,7 +355,7 @@ export default {
   }
   .img-product {
     width: 80%;
-    height: 56rem;
+    height: 62rem;
     position: relative;
     margin: 0 10%;
   }
@@ -342,9 +404,6 @@ export default {
     margin: 0 5% 2.4rem 5%;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 0px 0px -5px,
       rgba(0, 0, 0, 0.3) 0px 0px 16px -8px;
-    /* position:absolute;
-    left:0;
-    right:0; */
   }
   .prod_name {
     font-size: 1.8rem;

@@ -1,10 +1,9 @@
 import AuthService from "../services/auth.service";
-
+// import { jwtDecrypt } from "../shared/jwtHelper";
 const user = JSON.parse(localStorage.getItem("user"));
 const initialState = user
   ? { status: { loggedIn: true }, user }
   : { status: { loggedIn: false }, user: null };
-
 export const auth = {
   namespaced: true,
   state: initialState,
@@ -40,6 +39,9 @@ export const auth = {
   },
   mutations:{
     loginSuccess(state, user) {
+        // let a = ((JSON.parse(localStorage.getItem("user")).token));
+        // const jwtDecodeValue = jwtDecrypt(user.token);
+        // console.log(jwtDecodeValue);
         state.status.loggedIn = true;
         state.user = user;
     },
@@ -47,7 +49,7 @@ export const auth = {
         state.status.loggedIn = false;
         state.user = null;
     },
-    logout() {
+    logout(state) {
         state.status.loggedIn = false;
         state.user = null;
     },

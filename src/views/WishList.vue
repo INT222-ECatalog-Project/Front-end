@@ -5,19 +5,16 @@
       <div class="secondary-header">Wish List</div>
       <div class="card-grid grid grid--4-cols">
         <!-- component -->
-        <transition-group name="slide-fade">
-          <Card
-            v-for="product in queryWishList"
-            :key="product.id"
-            :product="product"
-            @toggleWishList="deleteWishList"
-          ></Card>
-                      <!-- :style="
-              product.isWishList == true
-                ? { color: '#eb435f' }
-                : { color: 'grey' }
-            " -->
-          <div class="no-wishlist" v-if="queryWishList.length == 0">
+        <transition-group name="slide-fade" v-if="getAllWishlist">
+          <!-- <div v-for="(products, index) in getAllWishlist" :key="index"> -->
+            <Card
+              v-for="product in getAllWishlist"
+              :key="product.product_id"
+              :product="product.product"
+              @toggleWishListDelete="deleteWishList"
+            ></Card>
+          <!-- </div> -->
+          <div class="no-wishlist" v-if="getAllWishlist.length == 0">
             you have not selected any products yet :|
             <div class="empty-wishlist">
               <img src="../../src/assets/images/empty-wishlist.png" alt="" />
@@ -34,6 +31,7 @@
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import Card from "@/components/Card.vue";
+import { mapGetters, mapActions } from "vuex";
 export default {
   name: "WishList",
   components: {
@@ -43,50 +41,44 @@ export default {
   },
   data() {
     return {
-      productUrl: "http://localhost:3000/products",
       products: [],
-      wishlistUrl: "http://localhost:3000/wishlist",
       wishlists: [],
       showProduct: [],
     };
   },
   mounted() {
     window.scrollTo(0, 0);
-    fetch(this.productUrl)
-      .then((res) => res.json())
-      .then((data) => (this.products = data))
-      .catch((err) => console.log(err.message));
-    fetch(this.wishlistUrl)
-      .then((res) => res.json())
-      .then((data) => (this.wishlists = data))
-      .catch((err) => console.log(err.message));
+    this.getWishListToStore();
   },
   methods: {
+    ...mapActions(["getWishListToStore"]),
     deleteWishList(selectWishlist) {
-      // const index = this.wishlists.findIndex((wishlist) => wishlist.product_id == selectWishlist);
-      // const wishlistId = this.wishlists[index].id;
-      // console.log(wishlistId)
-      console.log(selectWishlist.product_id)
-      this.$store.dispatch("deleteWishlist", selectWishlist.product_id);
-      // for (let index = 0; index < this.products.length; index++) {
-      //   if (this.products[index].id == product.id) {
-      //     this.products[index].isWishList = !this.products[index].isWishList;
-
-      //   }
-      // }
+      for (let index = 0; index < this.getAllWishlist.length; index++) {
+        const i = this.getAllWishlist.findIndex(
+          (wishlist) => wishlist.product_id == selectWishlist
+        );
+        if (i !== -1) {
+          this.getAllWishlist.splice(i, 1);
+          this.$store.dispatch("deleteFromWishlist", selectWishlist);
+        }
+      }
     },
   },
+  computed: mapGetters(["getWishList"]),
   computed: {
+    getAllWishlist() {
+      return this.$store.getters.getWishList;
+    },
     getAllproducts() {
       return this.$store.getters.getProducts;
     },
-    // queryWishList() {
-    //   return this.products.filter((product) => {
-    //     return product.isWishList;
-    //   });
-    // },
     queryWishList() {
-      return this.products.filter(product => this.wishlists.findIndex(wishlist => wishlist.product_id == product.id) > -1)
+      return this.products.filter(
+        (product) =>
+          this.wishlists.findIndex(
+            (wishlist) => wishlist.product_id == product.id
+          ) > -1
+      );
     },
   },
 };
@@ -95,9 +87,6 @@ export default {
 .section-wish-list {
   margin: 2.4rem 0 6.4rem 0;
 }
-/* .container{
-  padding: 3.6rem 3.2rem;
-} */
 .card-grid.grid {
   column-gap: 1.6rem;
 }

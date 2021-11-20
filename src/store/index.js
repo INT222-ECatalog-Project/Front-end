@@ -1,9 +1,14 @@
 import { createStore, storeKey } from "vuex";
+import router from "../router";
 import { auth } from "./auth.module";
-const BASE_URL = "http://52.187.114.221:9000/api";
+import authHeader from "../services/auth-header";
+let user = JSON.parse(localStorage.getItem("user"));
+const BASE_URL = "https://www.clothshop.company/api";
+// const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
-    defaultUrl: "http://52.187.114.221:9000/api",
+    defaultUrl: "https://www.clothshop.company/api",
+    // defaultUrl: "http://localhost:9000/api",
     products: [],
     colors: [],
     brands: [],
@@ -13,11 +18,19 @@ export default createStore({
     colorUrl: `${BASE_URL}/colors`,
     brandUrl: `${BASE_URL}/brands`,
     categoryUrl: `${BASE_URL}/categories`,
-    wishlistUrl: "http://localhost:3000/wishlist",
+    wishlistUrl: `${BASE_URL}/wishlist`,
 
     // account
     accounts: [],
-    accountUrl: "http://localhost:3000/accounts",
+    accountUrl: `${BASE_URL}/accounts/adminpage`,
+    accountActionURL: `${BASE_URL}/account`,
+    // accountAddURL: `${BASE_URL}/register`,
+    accountAddURL: `${BASE_URL}/account/addAdmin`,
+    usernameURL: `${BASE_URL}/accounts`,
+    username: "",
+    profile: "",
+    roles: [],
+    roleUrl: `${BASE_URL}/roles`,
   },
   mutations: {
     // products
@@ -25,17 +38,8 @@ export default createStore({
       state.products = products;
     },
 
-    // UPDATE_WISHLIST(state, updateWishlist) {
-    //   const index = state.products.findIndex(
-    //     (product) => product.id === updateWishlist.id
-    //   );
-    //   if (index !== -1) {
-    //     // replace element at index from products[index] to updateWishlist
-    //     state.products.splice(index, 1, updateWishlist);
-    //   }
-    // },
-
     ADD_PRODUCT(state, product) {
+      // console.log(product);
       state.products.push(product);
     },
 
@@ -67,9 +71,9 @@ export default createStore({
     },
 
     DELETE_WISHLIST(state, id) {
-      const index = state.wishlists.findIndex((wishlist) => wishlist.id == id);
+      const index = state.wishlists.findIndex((wishlist) => wishlist.product_id == id);
       if (index !== -1) {
-        state.wishlist.splice(index, 1);
+        state.wishlists.splice(index, 1);
       }
     },
 
@@ -80,7 +84,7 @@ export default createStore({
     },
 
     ADD_COLOR(state, color) {
-      console.log(state.colors);
+      // console.log(state.colors);
       state.colors.push(color);
     },
 
@@ -129,6 +133,12 @@ export default createStore({
     },
 
     // accounts
+    GET_USERNAMES(state, username) {
+      state.username = username;
+    },
+    GET_PROFILE(state, profile) {
+      state.profile = profile;
+    },
     GET_ACCOUNTS(state, accounts) {
       state.accounts = accounts;
     },
@@ -136,16 +146,24 @@ export default createStore({
       state.accounts.push(newAccount);
     },
     DELETE_ACCOUNT(state, id) {
-      const index = state.accounts.findIndex((account) => account.id == id);
+      const index = state.accounts.findIndex(
+        (account) => account.account_id == id
+      );
       if (index != -1) {
         state.accounts.splice(index, 1);
       }
     },
     UPDATE_ACCOUNT(state, updateAccount) {
-      const index = state.accounts.findIndex((account) => account.id == id);
-      if (index != -1) {
+      const index = state.accounts.findIndex(
+        (account) => account.account_id == updateAccount.account_id
+      );
+      if (index !== -1) {
         state.accounts.splice(index, 1, updateAccount);
       }
+    },
+    // roles
+    GET_ROLES(state, roles) {
+      state.roles = roles;
     },
   },
   actions: {
@@ -154,31 +172,11 @@ export default createStore({
         .then((res) => res.json())
         .then((data) => {
           context.commit("GET_PRODUCTS", data.data);
-          // console.log(data.data);
         })
         .catch((err) => console.log(err.message));
     },
 
-    // setProductWishList(context, editProduct) {
-    //   const jsonProduct = JSON.stringify(editProduct, {
-    //     type: "application/json",
-    //   });
-    //   fetch(this.state.productUrl + "/" + editProduct.id, {
-    //     method: "PUT",
-    //     headers: {
-    //       "Content-type": "application/json",
-    //     },
-    //     body: jsonProduct,
-    //   })
-    //     .then((res) => res.json())
-    //     .then((data) => {
-    //       context.commit("UPDATE_WISHLIST", data);
-    //     })
-    //     .catch((err) => console.log(err));
-    // },
-
     addProduct(context, payload) {
-      console.log(payload.image);
       const jsonProduct = JSON.stringify(payload.newProduct);
       const blob = new Blob([jsonProduct], {
         type: "application/json",
@@ -187,10 +185,17 @@ export default createStore({
       formData.append("imageFile", payload.image);
       formData.append("newProduct", blob);
       fetch(this.state.productUrl, {
+        headers: authHeader(),
         method: "POST",
         body: formData,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
           context.commit("ADD_PRODUCT", data);
         })
@@ -205,13 +210,18 @@ export default createStore({
       const formData = new FormData();
       formData.append("imageFile", payload.image);
       formData.append("editedProduct", blob);
-      console.log(payload.product_id);
-      console.log(payload.image);
       fetch(this.state.productUrl + "/" + payload.product_id, {
+        headers: authHeader(),
         method: "PUT",
         body: formData,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
           context.commit("UPDATE_PRODUCT", data);
         })
@@ -220,49 +230,64 @@ export default createStore({
 
     deleteProduct(context, id) {
       fetch(this.state.productUrl + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
-      }).catch((err) => console.log(err.message));
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+      })
+      .catch((err) => console.log(err.message));
       context.commit("DELETE_PRODUCT", id);
     },
 
     // wishlist
     getWishListToStore(context) {
-      fetch(this.state.wishlistUrl)
-        .then((res) => res.json())
+      fetch(this.state.wishlistUrl + "/", {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
-          context.commit("GET_WISHLIST", data);
+          context.commit("GET_WISHLIST", data.data);
         })
         .catch((err) => console.log(err.message));
     },
 
     addToWishList(context, newWishList) {
-      const jsonWishList = JSON.stringify(newWishList, {
-        type: "application/json",
-      });
-      fetch(this.state.wishlistUrl, {
+      fetch(this.state.wishlistUrl + "/" + newWishList.product_id, {
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
-        body: jsonWishList,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
           context.commit("ADD_WISHLIST", data);
         })
         .catch((err) => console.log(err));
     },
 
-    deleteWishlist(context, id) {
-      const index = this.state.wishlists.findIndex(
-        (wishlist) => wishlist.product_id == id
-      );
-      const wishlistId = this.state.wishlists[index];
-      console.log(this.state.wishlists);
-      fetch(this.state.wishlistUrl + "/" + wishlistId, {
+    deleteFromWishlist(context, id) {
+      fetch(this.state.wishlistUrl + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
       }).catch((err) => console.log(err.message));
-      context.commit("DELETE_WISHLIST", wishlistId);
+      context.commit("DELETE_WISHLIST", id);
     },
 
     // colors
@@ -283,12 +308,19 @@ export default createStore({
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonColor,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           context.commit("ADD_COLOR", data);
         })
         .catch((err) => console.log(err));
@@ -296,6 +328,7 @@ export default createStore({
 
     deleteColor(context, id) {
       fetch(this.state.colorUrl + "/" + id, {
+        headers: authHeader(),
         method: "DELETE",
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_COLOR", id);
@@ -309,10 +342,17 @@ export default createStore({
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonColor,
       })
-        // .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
           context.commit("UPDATE_COLOR", data);
         })
@@ -336,10 +376,17 @@ export default createStore({
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonBrand,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
         .then((data) => {
           // console.log(data);
           context.commit("ADD_BRAND", data);
@@ -349,6 +396,7 @@ export default createStore({
     deleteBrand(context, id) {
       fetch(this.state.brandUrl + "/" + id, {
         method: "DELETE",
+        headers: authHeader(),
       }).catch((err) => console.log(err.message));
       context.commit("DELETE_BRAND", id);
     },
@@ -360,8 +408,16 @@ export default createStore({
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonBrand,
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
       })
         .then((data) => {
           context.commit("UPDATE_BRAND", data);
@@ -381,54 +437,169 @@ export default createStore({
 
     // Accounts
     getAccountsToSite(context) {
-      fetch(this.state.accountUrl)
+      // if (user && user.token) {
+      fetch(this.state.accountUrl, {
+        headers: authHeader(),
+      })
+        .then((res) => {
+          if (res.status == 400) {
+            this.dispatch("auth/logout")
+            // router.push("/");
+          }
+          return res.json()
+        })
+        .then((data) => {
+          context.commit("GET_ACCOUNTS", data.data);
+        })
+        .catch((err) => console.log(err.message));
+      // }
+    },
+    getAllUsernames(context) {
+      fetch(this.state.usernameURL)
         .then((res) => res.json())
         .then((data) => {
-          context.commit("GET_ACCOUNTS", data);
+          context.commit("GET_USERNAMES", data.data);
         })
         .catch((err) => console.log(err.message));
     },
-
     createAccount(context, newAccount) {
       const jsonAccount = JSON.stringify(newAccount, {
         type: "application/json",
       });
-      fetch(this.state.accountUrl, {
+      fetch(this.state.accountAddURL, {
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonAccount,
       })
-        .then((res) => res.json())
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        if(res.status == 403){
+          alert("Invalid admin password")
+        }
+        return res.json()
+      })
         .then((data) => {
           context.commit("ADD_ACCOUNT", data);
         })
         .catch((err) => console.log(err));
     },
-
-    deleteAccount(context, id) {
-      fetch(this.state.accountUrl + "/" + id, {
-        method: "DELETE",
-      }).catch((err) => console.log(err.message));
-      context.commit("DELETE_ACCOUNT", id);
+    getProfileToSite(context) {
+      fetch(this.state.accountActionURL + "/", {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
+        .then((data) => {
+          context.commit("GET_PROFILE", data.data);
+        })
+        .catch((err) => console.log(err.message));
     },
-
-    editAccount(context, editAccount) {
-      let jsonEditAccount = JSON.stringify(editAccount, {
+    profileCustomization(context, editAccount) {
+      const jsonEditAccount = JSON.stringify(editAccount, {
         type: "application/json",
       });
-      fetch(this.state.accountUrl + "/" + editAccount.id, {
+      console.log(jsonEditAccount);
+      fetch(this.state.accountActionURL + "/updateProfile", {
         method: "PUT",
         headers: {
-          ContentType: "application/json",
+          "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
         },
         body: jsonEditAccount,
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
       })
         .then((data) => {
           context.commit("UPDATE_ACCOUNT", data);
         })
         .catch((err) => console.log(err));
+    },
+    deleteAccount(context, payload) {
+      // const jsonPassword = JSON.stringify(payload.password, {
+      //   type: "application/json",
+      // });
+      // console.log(jsonPassword);
+      fetch(this.state.accountActionURL + "/", {
+        headers: authHeader(),
+        method: "DELETE",
+        // body: jsonPassword,
+      })
+        .then((res) => {
+          if (res.status === 200) {
+            router.push("/");
+            // localStorage.removeItem("user")
+          }
+        })
+        .catch((err) => console.log(err.message));
+      // context.commit("DELETE_ACCOUNT", payload.account_id);
+    },
+    deleteAccountByAdmin(context, id) {
+      fetch(this.state.accountActionURL + "/" + id, {
+        headers: authHeader(),
+        method: "DELETE",
+      }).catch((err) => console.log(err.message));
+      context.commit("DELETE_ACCOUNT", id);
+    },
+
+    editAccountByAdmin(context, editAccount) {
+      const jsonEditAccount = JSON.stringify(editAccount, {
+        type: "application/json",
+      });
+      console.log(editAccount.account_id);
+      fetch(this.state.accountActionURL + "/" + editAccount.account_id, {
+        method: "PUT",
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + user.token,
+        },
+        body: jsonEditAccount,
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
+        .then((data) => {
+          console.log(data);
+          context.commit("UPDATE_ACCOUNT", data);
+        })
+        .catch((err) => console.log(err));
+    },
+
+    // roles
+    getRolesToSite(context) {
+      fetch(this.state.roleUrl, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.push("/sign-up");
+        }
+        return res.json()
+      })
+        .then((data) => {
+          context.commit("GET_ROLES", data.data);
+        })
+        .catch((err) => console.log(err.message));
     },
   },
   getters: {
@@ -463,6 +634,17 @@ export default createStore({
     // account getters
     getAccounts(state) {
       return state.accounts;
+    },
+    getProfile(state) {
+      return state.profile;
+    },
+    getUsernames(state) {
+      return state.username;
+    },
+
+    // role getters
+    getRoles(state) {
+      return state.roles;
     },
   },
   modules: { auth },

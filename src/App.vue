@@ -1,37 +1,52 @@
 <template>
   <div>
     <div id="nav">
-      <!-- :style="isMobileSign >= 470 && this.$route.name == 'SignUp' ? {display : none} : {}" -->
       <div class="logo"><span>NERDY</span>STYLE</div>
       <div class="nav-links">
         <router-link to="/">Home</router-link>
         <a href="/#section-about">About</a>
         <router-link to="/stores">Stores</router-link>
-        <div class="dropdown">
+        <div class="dropdown" v-if="isAdmin || isDeputyAdmin">
           <ul>
             <li>
               Management<i class="fas fa-angle-down"></i>
               <ul>
-                <li><router-link to="/add-product">Products</router-link></li>
+                <li v-if="isAdmin">
+                  <router-link to="/add-product">Products</router-link>
+                </li>
                 <li>
                   <router-link to="/colors+brands"
                     >Colors &amp; Brands</router-link
                   >
                 </li>
-                <li>
+                <li v-if="isAdmin">
                   <router-link to="/users">Users</router-link>
                 </li>
               </ul>
             </li>
           </ul>
         </div>
-        <!-- <router-link to="/add-product">Add</router-link> -->
-        <router-link class="sign" to="/sign-up">Sign up</router-link>
-        <router-link to="/wish-list" class="wishlist"
-          ><i class="far fa-heart"></i>
-          <!-- <span class="number">{{ numberOfWishlist.length }}</span> -->
-        </router-link>
-        <!-- <router-link to="/about"><i class="fas fa-sun"></i></router-link> -->
+        <router-link v-if="currentUser" to="/profile">Profile</router-link>
+        <router-link
+          v-if="currentUser"
+          to="/sign-up"
+          class="sign"
+          @click="logOut"
+          >Log out</router-link
+        >
+        <router-link v-if="!currentUser" class="sign" to="/sign-up"
+          >Sign up</router-link
+        >
+        <a
+          href="/wish-list"
+          class="wishlist"
+          v-if="!isDeputyAdmin && !isAdmin"
+          >
+          <div class="wishlistCount">
+              <i class="far fa-heart"></i><div class="number">{{getAllWishlist.length}}</div>
+          </div>
+          <!-- <div v-if="getAllWishlist"><i class="fas fa-heart"></i></div> -->
+        </a>
       </div>
       <div
         class="nav-mobile-links"
@@ -51,18 +66,35 @@
         <router-link to="/" @click="isShow = !isShow">Home</router-link>
         <a href="/#section-about" @click="isShow = !isShow">About</a>
         <router-link to="/stores" @click="isShow = !isShow">Stores</router-link>
-        <router-link to="/add-product" @click="isShow = !isShow"
+        <router-link to="/add-product" v-if="isAdmin" @click="isShow = !isShow"
           >Product</router-link
         >
-        <router-link to="/colors+brands" @click="isShow = !isShow"
+        <router-link
+          to="/colors+brands"
+          v-if="isAdmin || isDeputyAdmin"
+          @click="isShow = !isShow"
           >Colors &amp; Brands</router-link
         >
-        <router-link to="/users" @click="isShow = !isShow">Users</router-link>
-        <router-link class="sign" to="/sign-up" @click="isShow = !isShow"
+        <router-link to="/users" v-if="isAdmin" @click="isShow = !isShow"
+          >Users</router-link
+        >
+        <router-link v-if="currentUser" to="/profile" @click="isShow = !isShow">Profile</router-link>
+        <router-link
+          v-if="currentUser"
+          to="/sign-up"
+          class="sign"
+          @click="logOut"
+          >Log out</router-link
+        >
+        <router-link
+          v-if="!currentUser"
+          class="sign"
+          to="/sign-up"
+          @click="isShow = !isShow"
           >Sign up</router-link
         >
-        <router-link to="/wish-list" @click="isShow = !isShow"
-          >Wish List</router-link
+        <a href="/wish-list" @click="isShow = !isShow" v-if="!isDeputyAdmin && !isAdmin"
+          >Wish List</a
         >
       </div>
     </div>
@@ -76,15 +108,84 @@
   <!-- <router-view/> -->
 </template>
 <script>
+import EventBus from "./common/EventBus";
+import { mapGetters, mapActions } from "vuex";
 export default {
   data() {
     return {
       isShow: false,
-      productUrl: "http://localhost:3000/products",
       products: [],
     };
   },
+  methods: {
+        ...mapActions(["getWishListToStore"]),
+    logOut() {
+      this.numberOfWishlist = 0;
+      this.isShow = !this.isShow;
+      this.$store.dispatch("auth/logout");
+      this.$router.push("/sign-up")
+      // sessionStorage.removeItem("store")
+    },
+    parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+  },
+    computed: mapGetters(["getWishList"]),
   computed: {
+    getAllWishlist() {
+      return this.$store.getters.getWishList;
+    },
+    currentUser() {
+      // console.log(JSON.parse(localStorage.getItem("user")).token);
+      // if (localStorage.getItem("user")) {
+      //         // console.log(this.$store.state.auth.user.role_id);
+      //         // console.log(this.$store.state.auth.user);
+      //         // console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
+      //         // console.log(JSON.parse(localStorage.getItem("user")).token.split('.'));
+      //         // console.log(atob(JSON.parse(localStorage.getItem("user")).token.split('.')[1]));
+      //         // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
+      // }
+
+      // return false;
+      // console.log(this.state);
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 1) {
+      //   return true;
+      // }
+      // return false;
+    },
+    isDeputyAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 2) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 2) {
+      //   return true;
+      // }
+      // return false;
+    },
+    isMember() {
+      if (this.currentUser && this.currentUser["role"] == 3) {
+        return true;
+      }
+      return false;
+      // if (this.currentUser && this.currentUser.role_id == 2) {
+      //   return true;
+      // }
+      // return false;
+    },
     isMobileSign() {
       return window.innerWidth;
     },
@@ -98,25 +199,47 @@ export default {
     },
   },
   mounted() {
-    // fetch(this.productUrl)
-    //   .then((res) => res.json())
-    //   .then((data) => (this.products = data))
-    //   .catch((err) => console.log(err.message));
-    $(document).ready(function() {
-      $(window).scroll(function() {
-        if (this.scrollY > 1) {
-          $("#nav").addClass("sticky");
-          // document.getElementById("nav").style.position = "relative";
-        } else {
-          $("#nav").removeClass("sticky");
-          // document.getElementById("nav").style.position = "absolute";
-        }
-      });
+    EventBus.on("logout", () => {
+      this.logOut();
+    });
+    if (this.isMember) {
+          this.getWishListToStore();
+    }
+        // this.getWishListToStore();
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > document.getElementById("nav").offsetTop) {
+        document.getElementById("nav").classList.add("sticky");
+      } else {
+        document.getElementById("nav").classList.remove("sticky");
+      }
     });
     document.querySelector(".logo").addEventListener("click", () => {
       window.scrollTo(0, 0);
     });
   },
+  beforeDestroy() {
+    EventBus.remove("logout");
+  },
+  created() {
+    
+    // axios.interceptors.response.use(undefined, (err) => {
+    //   return new Promise((resolve,reject) => {
+    //     if (err.state = 401 && err.config && !err.config.__isRetryRequest) {
+    //       this.logOut();
+    //       this.$router("/sign-up");
+    //     }
+    //     throw err;
+    //   });
+    // });
+        // Read sessionStorage on page load
+    // if (sessionStorage.getItem('store')) {
+    //   this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))))
+    // }
+    // // Save the store to sessionStorage when the page is refreshed
+    // window.addEventListener('beforeunload', () => {
+    //   sessionStorage.setItem('store', JSON.stringify(this.$store.state))
+    // })
+  }
 };
 </script>
 
@@ -272,7 +395,17 @@ export default {
 .wishlist .number {
   font-size: 1rem;
   top: 0%;
+  margin-left: 1rem;
+  padding: 0.1rem 0.4rem;
+  background-color: #eb435f;
+  border-radius: 1rem;
   position: absolute;
+  color: #fff;
+  text-align: center;
+}
+
+.wishlistCount {
+  display: flex;
 }
 
 @media (max-width: 84em) {
@@ -287,6 +420,7 @@ export default {
     font-size: 2rem;
     color: #333;
     justify-self: end;
+    cursor: pointer;
   }
   .menu-bar {
     display: flex;

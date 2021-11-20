@@ -1,7 +1,23 @@
 <template>
   <div class="pop-up">
     <div class="success-img">
-      <img :src="imgSrc" :alt="altText" />
+      <lottie-player
+        class="complete"
+        v-if="isTrue"
+        src="https://assets5.lottiefiles.com/private_files/lf30_yo2zavgg.json"
+        background="transparent"
+        speed="1"
+        style="width: full; height: full;"
+        autoplay
+      ></lottie-player>
+      <lottie-player
+        class="fail"
+        v-else
+        src="https://assets9.lottiefiles.com/packages/lf20_eSd5sJ.json"
+        background="transparent"
+        speed="1"
+        autoplay
+      ></lottie-player>
     </div>
     <div
       class="success-text"
@@ -24,7 +40,7 @@
 </template>
 <script>
 export default {
-  props: ["imgSrc", "text", "altText", "isTrue"],
+  props: ["text", "isTrue"],
   name: "Popup",
   methods: {
     closePopup() {
@@ -58,6 +74,9 @@ export default {
   width: 15rem;
   height: 15rem;
   animation: appears-from-bottom 0.75s 1 ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .success-img img {
   width: 100%;
@@ -93,6 +112,10 @@ export default {
   margin-top: 1.6rem;
   border-radius: 2.4rem;
 }
+.fail {
+  width: 10.4rem;
+  height: 10.4rem;
+}
 
 /* below 800px */
 @media (max-width: 50em) {
@@ -127,6 +150,14 @@ export default {
     .success-img {
       width: 10rem;
       height: 10rem;
+    }
+    .fail {
+      width: 6rem;
+      height: 6rem;
+    }
+    .complete{
+      width: 7.4rem;
+      height: 7.4rem;
     }
     .btn,
     .btn:link,

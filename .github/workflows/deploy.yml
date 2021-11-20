@@ -1,0 +1,47 @@
+name: frontend CD
+
+on:
+  push:
+    branches: 
+      - 'main'
+    
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+    - uses: actions/checkout@v2
+    -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: build docker images
+      run: |
+        docker build . --tag ghcr.io/int222-ecatalog-project/front-end
+        docker images 
+    - name: push docker image to registy
+      run: |
+        docker push ghcr.io/int222-ecatalog-project/front-end
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            export CR_PAT=${{ secrets.GITHUB_TOKEN }}
+            echo $CR_PAT | docker login ghcr.io -u mai126 --password-stdin
+            docker pull ghcr.io/int222-ecatalog-project/front-end
+            docker images
+            docker rm frontend -f
+            docker run -d --name frontend --network clothshopnetwork --ip 172.18.0.5 ghcr.io/int222-ecatalog-project/front-end

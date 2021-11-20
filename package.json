@@ -8,10 +8,14 @@
     "backend": "json-server --watch db.json --port 3000"
   },
   "dependencies": {
+    "@lottiefiles/lottie-player": "^1.4.1",
     "@splidejs/vue-splide": "^0.3.5",
     "axios": "^0.22.0",
     "core-js": "^3.6.5",
+    "lottie-web-vue": "^1.2.0",
     "vue": "^3.0.0",
+    "vue-lottie": "^0.2.1",
+    "vue-lottie-player": "^0.1.9",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"
   },

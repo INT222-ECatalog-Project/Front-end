@@ -78,7 +78,7 @@
         </div>
       </div>
     </div>
-    <div class="section section-clothes">
+    <div class="section section-clothes" id="clothes">
       <div class="container">
         <div class="sub-heading">match your style</div>
         <div class="secondary-header">Clothes</div>
@@ -90,24 +90,14 @@
                 <option value="">none</option>
                 <option
                   v-for="brand in allBrands"
-                  :key="brand.id"
+                  :key="brand.brand_id"
                   :value="brand.brand_name"
-                  >{{ brand.brand_name }} ({{numberOfProductByBrand(brand.brand_name) }})</option
+                  >{{ brand.brand_name }} ({{
+                    numberOfProductByBrand(brand.brand_name)
+                  }})</option
                 >
               </select>
             </div>
-            <!-- <div class="text-filter">
-              <label for="colors">COLOR</label>
-              <select name="colors" id="colors" v-model="selectedColor">
-                <option value="">none</option>
-                <option
-                  v-for="color in allColors"
-                  :key="color"
-                  :value="color.color_name"
-                  >{{ color.color_name }}</option
-                >
-              </select>
-            </div> -->
             <div class="text-filter">
               <label for="product-types">PRODUCT TYPE</label>
               <select
@@ -118,9 +108,11 @@
                 <option value="">none</option>
                 <option
                   v-for="category in allCategories"
-                  :key="category.id"
+                  :key="category.category_id"
                   :value="category.category_name"
-                  >{{ category.category_name }} ({{numberOfProductByCategory(category.category_name)}})</option
+                  >{{ category.category_name }} ({{
+                    numberOfProductByCategory(category.category_name)
+                  }})</option
                 >
               </select>
             </div>
@@ -156,23 +148,20 @@
           </div>
         </div>
         <div class="card-grid grid grid--4-cols">
-          <router-link to="/add-product" class="add-product">
+          <router-link v-if="isAdmin" to="/add-product" class="add-product">
             <i class="fas fa-plus-square"></i>
           </router-link>
           <!-- component -->
           <transition-group name="slide-fade">
             <Card
-              v-for="product in queryProducts"
+              v-for="(product, index) in queryProducts"
               :key="product.product_id"
               :product="product"
               @deleteProduct="handleDelete"
+              @toggleWishList="addWishList"
+              @toggleWishListDelete="deleteWishList"
+              v-show="setPaginate(index)"
             ></Card>
-            <!-- @toggleWishList="addWishList" -->
-            <!-- :style="
-                product.isWishList == true
-                  ? { color: '#eb435f' }
-                  : { color: 'grey' }
-              " -->
             <div class="not-found" v-if="queryProducts.length == 0">
               <span
                 >{{ searchInput }} {{ selectedBrand }}
@@ -182,9 +171,20 @@
             </div>
           </transition-group>
         </div>
+        <div id="pagination">
+          <div
+          :style="[ current == page_index ? {backgroundColor:'#333', color:'#fff'}:{}]"
+            class="btn-page"
+            v-for="page_index in pageTotal"
+            :key="page_index"
+            @click.prevent="updateCurrent(page_index)"
+          >
+            {{ page_index }}
+          </div>
+        </div>
       </div>
     </div>
-    <router-link to="/add-product" class="float-add-product">
+    <router-link v-if="isAdmin" to="/add-product" class="float-add-product">
       <i class="fas fa-plus"></i>
     </router-link>
     <Socials class="socials"></Socials>
@@ -208,12 +208,13 @@ export default {
   },
   data() {
     return {
+      current: 1,
+      paginate: 20,
       options: {
         rewind: true,
         autoplay: "playing",
       },
       productUrl: this.$store.state.defaultUrl + "/products",
-      // urlColors: "http://localhost:3000/colors",
       products: [],
       colors: [],
       searchInput: "",
@@ -256,6 +257,9 @@ export default {
     addWishList(product) {
       this.$store.dispatch("addToWishList", product);
     },
+    deleteWishList(product) {
+       this.$store.dispatch("deleteFromWishlist", product);
+    },
     changeImage(id) {
       for (let index = 0; index < this.slotImages.length; index++) {
         if (this.slotImages[index].show === true) {
@@ -266,16 +270,41 @@ export default {
       this.slotImages[this.cursor - 1].show = true;
     },
     numberOfProductByBrand(name) {
-      var brandCount = this.products.filter((product) =>
+      try {
+        var brandCount = this.getAllproducts.filter((product) =>
         product.brand.brand_name.toLowerCase().includes(name.toLowerCase())
       );
       return brandCount.length;
+      } catch (error) {
+        // console.log(error);
+        this.$router.push("/stores")
+      }
     },
     numberOfProductByCategory(category) {
-      var categoryCount = this.products.filter((product) =>
+      try {
+        var categoryCount = this.getAllproducts.filter((product) =>
         product.category.category_name.includes(category)
       );
       return categoryCount.length;
+      } catch (error) {
+                // console.log(error);
+        this.$router.push("/stores")
+      }
+    },
+    setPaginate(i) {
+      if (this.current == 1) {
+        return i < this.paginate;
+      } else {
+        return (
+          i >= this.paginate * (this.current - 1) &&
+          i < this.current * this.paginate
+        );
+      }
+    },
+    updateCurrent(i) {
+      this.current = i;
+      let clothes =  document.querySelector("#clothes");
+      window.scrollTo(0,clothes.offsetTop);
     },
   },
   mounted() {
@@ -306,6 +335,15 @@ export default {
     "getCategories",
   ]),
   computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+    },
     getAllproducts() {
       return this.$store.getters.getProducts;
     },
@@ -319,6 +357,7 @@ export default {
       return this.$store.getters.getCategories;
     },
     queryProducts() {
+      this.current = 1;
       return this.products.filter((product) => {
         return (
           product != this.handleDelete &&
@@ -330,16 +369,9 @@ export default {
         );
       });
     },
-    // queryColors() {
-    //   for (let index = 0; index < this.products.length; index++) {
-    //     for (let i = 0; i < this.products[index].colors.length; i++) {
-    //       if (this.products[index].colors[i].color_code == this.selectedColor) {
-    //         this.selectColorProduct.push(this.products[index]);
-    //       }
-    //     }
-    //   }
-    //   return this.selectColorProduct;
-    // },
+    pageTotal() {
+      return Math.ceil((this.queryProducts.length) / this.paginate);
+    },
   },
   created() {
     this.getColorToStore();
@@ -526,7 +558,7 @@ export default {
 .btn--ghost:hover,
 .btn--ghost:active {
   background-color: #bc364c;
-  color: #e7e3e0;
+  color: #fff;
   box-shadow: none;
 }
 
@@ -578,25 +610,22 @@ export default {
   font-size: 1.4rem;
   width: 16rem;
   box-shadow: inset 0 0 0 1px #e7e3e0;
-  color: #e7e3e0;
+  color: #fff;
   transition: 0.3s all ease-in-out;
 }
 
 .app-button .btn--ghost:hover,
 .app-button .btn--ghost:active {
   box-shadow: none;
-  color: #e7e3e0;
+  color: #fff;
   transition: 0.3s all ease-in-out;
 }
 
 .filters-clothes {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 4.8rem;
+  gap: 0rem;
   margin: 3.6rem 0;
-  /* width: auto;
-  justify-content: space-between;
-  margin: 3.6rem 0; */
 }
 
 .filter {
@@ -624,10 +653,10 @@ export default {
 }
 
 .search input {
-  padding: 0.2rem 0.4rem;
-  color: #555;
+  padding: 0.2rem 0.6rem;
+  color: #333;
   border: none;
-  background-color: rgb(240, 240, 240);
+  background-color: #fff;
   width: 36rem;
   height: 3.2rem;
 }
@@ -643,15 +672,19 @@ select {
   color: rgb(85, 85, 85, 0.35);
 }
 .brand-filter-mb {
+  width: 100%;
   display: none;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-  overflow: hidden;
+  /* flex-wrap: wrap; */
+  gap: 1rem;
+  overflow: scroll;
 }
 
 .filter-mb {
+  align-self: center;
+  text-align: center;
+  line-height: 1.2;
   width: auto;
-  height: 3.6rem;
+  height: auto;
   background-color: #fff;
   font-size: 1.4rem;
   padding: 1rem 1.2rem;
@@ -707,6 +740,29 @@ select {
   font-size: 2.4rem;
   font-weight: 700;
   color: #eb435f;
+}
+#pagination{
+margin-top: 5.8rem;
+display: flex;
+justify-content: center;
+}
+.btn-page{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0.6rem;
+  font-weight: 700;
+  transition: 00.15s all ease-in-out;
+  box-shadow: inset 0 0 0 1px #333;
+}
+.btn-page:hover{
+  background-color: #333;
+  color: #fff;
 }
 
 /* below 925px */

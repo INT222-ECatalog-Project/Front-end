@@ -39,7 +39,7 @@
                 <input
                   :type="type"
                   name="password"
-                  id="password"
+                  id="password-sign-in"
                   placeholder="*******"
                   v-model="form.sign_in_password"
                 />
@@ -66,12 +66,21 @@
               </div>
             </div>
             <a href="#" class="forgot">Forgot your password?</a>
-            <button class="btn btn--full" type="submit">Sign in</button>
+            <button
+              class="btn btn--full"
+              type="submit"
+              :style="
+                signInUsernameisValid && signInPasswordisValid
+                  ? {}
+                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' }
+              "
+            >
+              Sign in
+            </button>
             <div class="mobile sign-btn" @click="isSignUp = true">Sign up</div>
           </form>
         </div>
       </transition-group>
-      <!-- Sign Up -->
       <transition-group name="fade">
         <div class="sign-up grid" v-if="isSignUp">
           <div class="back-btn" @click="goBack">
@@ -207,7 +216,7 @@
                 <input
                   :type="type"
                   name="password"
-                  id="password"
+                  id="password-sign-up"
                   placeholder="*******"
                   v-model="form.sign_up_password"
                   :style="[
@@ -249,7 +258,7 @@
               :style="[
                 signUpFormIsValid
                   ? { backgroundColor: '#333' }
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
               ]"
             >
               Sign up
@@ -277,26 +286,27 @@
         </div>
       </transition-group>
     </div>
-    <!-- component  popup -->
     <div class="modal" v-if="successSignUp">
       <Popup
         @closePopup="successSignUp = false"
-        :imgSrc="successImg"
         :text="successSignUpText"
-        :altText="altSuccess"
         :isTrue="true"
       />
     </div>
     <div class="modal" v-if="failedSignUp">
       <Popup
         @closePopup="failedSignUp = false"
-        :imgSrc="failedImg"
         :text="failedSignUpText"
-        :altText="altFailed"
         :isTrue="false"
       />
     </div>
-    <!-- /component  popup -->
+    <div class="modal" v-if="failedSignIn">
+      <Popup
+        @closePopup="failedSignIn = false"
+        :text="failedSignInText"
+        :isTrue="false"
+      />
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
     <div class="big-circle"></div>
@@ -318,37 +328,41 @@ export default {
     return {
       successSignUp: false,
       failedSignUp: false,
-      successImg: require("@/assets/images/success.png"),
+      failedSignIn: false,
       successSignUpText: "Congratulations, your account is ready!",
-      altSuccess: "Success icon",
-      failedImg: require("@/assets/images/failed.png"),
-      failedSignUpText: "this username has already used",
-      altFailed: "Failed icon",
-      loading: false,
-      message: "",
+      failedSignUpText: "This username has already used",
+      failedSignInText: "Invalid username or password",
+      loading: false, //login + signup
+      message: "", //login + signup
       type: "password",
-      successful: false,
+      successful: false, //signup
       isSignUp: false,
       form: {
-        // sign-in
-        sign_in_email: "",
+        sign_in_username: "",
         sign_in_password: "",
-        // sign-up
         sign_up_name: "",
         sign_up_surname: "",
         sign_up_username: "",
         sign_up_email: "",
         sign_up_password: "",
       },
+      allUsername:""
     };
   },
-  computed: mapGetters(["getAccounts"]),
+  computed: mapGetters(["getAccounts","getUsernames"]),
   mounted() {
     window.scrollTo(0, 0);
     if (this.loggedIn) {
       this.$router.push("/stores");
     }
     this.getAccountsToSite();
+    this.getAllUsernames();
+          fetch(this.$store.state.usernameURL)
+        .then((res) => res.json())
+        .then((data) => {
+          this.allUsername = data.data
+        })
+        .catch((err) => console.log(err.message));
   },
   created() {
     if (this.loggedIn) {
@@ -356,12 +370,21 @@ export default {
     }
   },
   computed: {
-    getAllUsers() {
+    getAllUsersToSite() {
       return this.$store.getters.getAccounts;
     },
+    getAllUsername() {
+      return this.$store.getters.getUsernames;
+    },
+    signInUsernameisValid() {
+      return !!this.form.sign_in_username;
+    },
+    signInPasswordisValid() {
+      return !!this.form.sign_in_password;
+    },
     checkUniqueUsername() {
-      for (let index = 0; index < this.getAllUsers.length; index++) {
-        if (this.getAllUsers[index].username == this.form.sign_up_username) {
+      for (let index = 0; index < this.allUsername.length; index++) {
+        if (this.allUsername[index].username.toLowerCase() == this.form.sign_up_username.toLowerCase()) {
           return true;
         }
       }
@@ -388,7 +411,7 @@ export default {
       );
     },
     signUpEmailIsValid() {
-      return !!this.form.sign_up_email;
+      return !!this.form.sign_up_email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.sign_up_email);
     },
     signUpPasswordIsValid() {
       return (
@@ -410,7 +433,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getAccountsToSite"]),
+    ...mapActions(["getAccountsToSite","getAllUsernames"]),
     goBack() {
       this.$router.go(-1);
     },
@@ -432,7 +455,7 @@ export default {
           role: {
             id: 3,
             role_name: "member",
-            role_desc: "Able to [ADD/DELETE] wishlists",
+            role_desc: "Able to [ADD/DELETE/GET] Wishlist and [GET] Products",
           },
         };
         this.$store.dispatch("auth/register", newAccount);
@@ -442,45 +465,31 @@ export default {
           (this.form.sign_up_email = ""),
           (this.form.sign_up_password = "");
         this.successSignUp = true;
-        // alert("Create Account Success🎉🎉");
       } else {
+        this.form.sign_in_password = "";
         this.failedSignUp = true;
       }
     },
-    handleLogin(user) {
+    handleLogin() {
+      let user = {
+        username: this.form.sign_in_username,
+        password: this.form.sign_in_password,
+      };
       this.loading = true;
       this.$store.dispatch("auth/login", user).then(
         () => {
+          window.location.reload();
           this.$router.push("/stores");
         },
         (err) => {
           this.loading = false;
+          this.form.sign_in_password = "";
+          this.failedSignIn = true;
           this.message =
             (err.respose && err.response.data && err.response.data.message) ||
             err.message ||
             err.toString();
-        }
-      );
-    },
-    handleRegister(user) {
-      this.message = "";
-      this.successful = false;
-      this.loading = true;
-      this.$store.dispatch("auth/register", user).then(
-        (data) => {
-          this.message = data.message;
-          this.successful = true;
-          this.loading = false;
-        },
-        (error) => {
-          this.message =
-            (error.respose.data &&
-              error.respose.data &&
-              error.response.data.message) ||
-            error.message ||
-            error.toString();
-          this.successful = false;
-          this.loading = false;
+          console.log(this.message);
         }
       );
     },
@@ -740,14 +749,14 @@ export default {
 .input-name input {
   width: 80%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }
 .input-surname input {
   width: 100%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }
@@ -756,7 +765,7 @@ export default {
 .input-password input {
   width: 100%;
   height: 3.6rem;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   border: none;
   padding: 0 0.8rem;
 }

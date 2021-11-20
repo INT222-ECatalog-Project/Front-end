@@ -98,7 +98,7 @@
                 <span v-if="!editEmailIsValid">*required</span>
               </label>
               <input
-                type="text"
+                type="email"
                 id="email"
                 name="email"
                 placeholder="example@mail.com"
@@ -155,6 +155,37 @@
                 </div>
               </div>
             </div>
+            <div class="password">
+              <label for="password-admin"
+                >Admin password
+                <span v-if="!editPasswordIsValid"
+                  >*required</span
+                >
+              </label>
+              <input
+                :type="type"
+                id="password-admin"
+                name="password-admin"
+                placeholder="*********"
+                v-model="form.adminPassword"
+              />
+              <div class="btn-eye" @click="togglePassword">
+                <div
+                  :style="[
+                    type === 'text' ? { display: 'none' } : { display: 'flex' },
+                  ]"
+                >
+                  <i class="fas fa-eye icon"></i>
+                </div>
+                <div
+                  :style="[
+                    type !== 'text' ? { display: 'none' } : { display: 'flex' },
+                  ]"
+                >
+                  <i class="fas fa-eye-slash icon"></i>
+                </div>
+              </div>
+            </div>
             <div class="role">
               <label for="role"
                 >Role
@@ -162,18 +193,27 @@
               </label>
               <select name="role" id="role" v-model="form.role">
                 <option value="" selected>none</option>
-                <option value="admin" selected>Admin</option>
-                <option value="deputy admin">Deputy Admin</option>
+                <option
+                  :value="role.role_id"
+                  v-for="role in getAdminRoles"
+                  :key="role.role_id"
+                  >{{ role.role_name }}</option
+                >
               </select>
             </div>
             <button
               class="btn btn--full"
               v-if="isEdit == false"
               type="submit"
+              @click="createAccount"
               :style="[
                 editFormIsValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    },
               ]"
             >
               Add
@@ -182,10 +222,15 @@
               class="btn btn--full edit-btn"
               v-if="isEdit"
               type="submit"
+              @click="editAccount"
               :style="[
                 editFormIsValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed' },
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    },
               ]"
             >
               Confirm edit
@@ -204,16 +249,19 @@
             <label for="colors">ROLES</label>
             <select v-model="selectedRole">
               <option value="">none</option>
-              <option value="Admin">Admin</option>
-              <option value="Deputy Admin">Deputy Admin</option>
-              <option value="Member">Member</option>
+              <option
+                v-for="role in getAllRoles"
+                :key="role.role_id"
+                :value="role.role_id"
+                >{{ role.role_name }}</option
+              >
             </select>
           </div>
           <div class="role-filter-mb">
             <div
               class="filter-mb admin-filter"
               :style="[
-                adminFilter == true || selectedRole == 'Admin'
+                adminFilter == true || selectedRole == 1
                   ? { backgroundColor: '#ffd700', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -224,7 +272,7 @@
             <div
               class="filter-mb deputy-admin-filter"
               :style="[
-                deputyAdminFilter == true || selectedRole == 'Deputy Admin'
+                deputyAdminFilter == true || selectedRole == 2
                   ? { backgroundColor: '#FF6347', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -235,7 +283,7 @@
             <div
               class="filter-mb member-filter"
               :style="[
-                memberFilter == true || selectedRole == 'Member'
+                memberFilter == true || selectedRole == 3
                   ? { backgroundColor: '#9400D3', color: 'white' }
                   : { backgroundColor: '#ddd', color: '#white' },
               ]"
@@ -255,38 +303,46 @@
           <!-- component -->
           <List
             class="List"
-            v-for="user in queryUsers"
-            :key="user.id"
+            v-for="(user, index) in getAllUsers"
+            :key="user.account_id"
             :user="user"
             @deleteAccountById="handleDelete"
+            @editAccountById="handleEdit"
+            v-show="setPaginate(index)"
           ></List>
         </transition-group>
         <transition-group name="slide-fade">
-          <Table :ths="ths" class="table" :key="ths">
-            <tbody v-for="(user, index) in queryUsers" :key="user.id">
+          <Table :ths="ths" class="table" id="table" :key="ths">
+            <tbody
+              v-for="(user, index) in getAllUsers"
+              :key="user.account_id"
+              v-show="setPaginate(index)"
+            >
               <tr>
                 <td>{{ index + 1 }}</td>
                 <td>{{ user.first_name }}</td>
                 <td>{{ user.last_name }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.password }}</td>
-                <td>{{ user.role.role_name }}</td>
+                <td v-if="user.role_id == 1">Admin</td>
+                <td v-if="user.role_id == 2">Deputy Admin</td>
+                <td v-if="user.role_id == 3">Member</td>
                 <td>
                   <div
                     class="delete"
-                    @click="deleteAccount(user.id)"
+                    @click="deleteAccount(user.account_id)"
                     :style="{ display: 'inline' }"
                   >
                     Delete
                   </div>
-                  |
+
                   <div
+                    v-if="user.role_id != 3"
                     class="edit"
                     @click="toggleEditAccount(user)"
                     :style="{ display: 'inline' }"
                   >
-                    Edit
+                    | Edit
                   </div>
                 </td>
               </tr>
@@ -295,6 +351,28 @@
           <!-- -------- -->
         </transition-group>
       </div>
+    </div>
+    <div id="pagination">
+      <div
+        :style="[
+          current == page_index
+            ? { backgroundColor: '#333', color: '#fff' }
+            : {},
+        ]"
+        class="btn-page"
+        v-for="page_index in pageTotal"
+        :key="page_index"
+        @click.prevent="updateCurrent(page_index)"
+      >
+        {{ page_index }}
+      </div>
+    </div>
+    <div class="modal" v-if="failedCreate">
+      <Popup
+        @closePopup="failedCreate = false"
+        :text="failedCreateText"
+        :isTrue="false"
+      />
     </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
@@ -305,6 +383,7 @@ import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import List from "@/components/List.vue";
 import Table from "@/components/Table.vue";
+import Popup from "@/components/Popup.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
   name: "Users",
@@ -313,58 +392,54 @@ export default {
     Footer,
     List,
     Table,
+    Popup,
   },
   data() {
     return {
+      failedCreate: false,
+      failedCreateText: "This username has already used",
+      current: 1,
+      paginate: 10,
       type: "password",
       isEdit: false,
       users: [],
+      allUsername: "",
       searchInput: "",
       selectedRole: "",
       adminFilter: false,
       deputyAdminFilter: false,
       memberFilter: false,
-      ths: [
-        "No",
-        "First Name",
-        "Last Name",
-        "Username",
-        "Email",
-        "Password",
-        "Role",
-      ],
+      confirmPassword: "",
+      ths: ["No", "First Name", "Last Name", "Username", "Email", "Role"],
       form: {
-        // add
-
-        // edit
         id: "",
         name: "",
         surname: "",
         username: "",
         email: "",
         password: "",
+        adminPassword:"",
         role: "",
       },
     };
   },
   methods: {
-    ...mapActions(["getAccountsToSite"]),
+    ...mapActions(["getAccountsToSite", "getRolesToSite"]),
     togglePassword() {
       if (this.type === "password") {
         this.type = "text";
       } else if (this.type === "text") {
         this.type = "password";
       }
-      // console.log(this.type);
     },
     filterAdmin() {
       this.deputyAdminFilter = false;
       this.memberFilter = false;
       this.adminFilter = !this.adminFilter;
       if (this.adminFilter) {
-        this.selectedRole = "Admin";
+        this.selectedRole = this.getAllRoles[0].role_id;
       } else {
-        this.selectedRole = "";
+        this.selectedRole = null;
       }
     },
     filterDeputyAdmin() {
@@ -372,9 +447,9 @@ export default {
       this.memberFilter = false;
       this.deputyAdminFilter = !this.deputyAdminFilter;
       if (this.deputyAdminFilter) {
-        this.selectedRole = "Deputy Admin";
+        this.selectedRole = this.getAllRoles[1].role_id;
       } else {
-        this.selectedRole = "";
+        this.selectedRole = null;
       }
     },
     filterMember() {
@@ -382,22 +457,21 @@ export default {
       this.deputyAdminFilter = false;
       this.memberFilter = !this.memberFilter;
       if (this.memberFilter) {
-        this.selectedRole = "Member";
+        this.selectedRole = this.getAllRoles[2].role_id;
       } else {
-        this.selectedRole = "";
+        this.selectedRole = null;
       }
     },
     toggleEditAccount(editAccount) {
       window.scrollTo(0, 0);
       this.isEdit = !this.isEdit;
       if (this.isEdit == true) {
-        this.form.id = editAccount.id;
+        this.form.id = editAccount.account_id;
         this.form.name = editAccount.first_name;
         this.form.surname = editAccount.last_name;
         this.form.username = editAccount.username;
         this.form.email = editAccount.email;
-        this.form.password = editAccount.password;
-        this.form.role = editAccount.role.role_name;
+        this.form.role = editAccount.role_id;
       } else {
         this.form.id = "";
         this.form.name = "";
@@ -411,31 +485,166 @@ export default {
     // in the table
     deleteAccount(id) {
       if (confirm("Do you really want to delete? 😲")) {
-        this.$store.dispatch("deleteAccount", id);
+        this.$store.dispatch("deleteAccountByAdmin", id);
       }
     },
-    editAccount() {},
-
-    // in card compo
+    editAccount() {
+        if (this.editFormIsValid && this.checkUniqueUsername != true) {
+          const index = this.getAllUsers.findIndex(
+            (account) => account.account_id == this.form.id
+          );
+          if (index !== -1) {
+            const editAccount = {
+              account_id: this.form.id,
+              first_name: this.form.name,
+              last_name: this.form.surname,
+              username: this.form.username,
+              email: this.form.email,
+              userPassword: this.form.password,
+              adminPassword: this.form.adminPassword,
+              role_id: this.form.role,
+            };
+            let user = JSON.parse(localStorage.getItem("user"));
+            const jsonEditAccount = JSON.stringify(editAccount, {
+              type: "application/json",
+            });
+            fetch(
+              this.$store.state.accountActionURL + "/" + editAccount.account_id,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-type": "application/json",
+                  Authorization: "Bearer " + user.token,
+                },
+                body: jsonEditAccount,
+              }
+            )
+              .then((response) => {
+                if (response.status === 200) {
+                  this.$store.getters.getAccounts.splice(index, 1, editAccount);
+                } else {
+                  alert("❌Invalid admin password❌");
+                }
+              })
+              .catch((err) => console.log(err));
+            this.isEdit = false;
+            this.form.account_id = "";
+            this.form.name = "";
+            this.form.surname = "";
+            this.form.username = "";
+            this.form.email = "";
+            this.form.password = "";
+            this.form.adminPassword = "";
+            this.form.role = "";
+          }
+        } else {
+          this.form.password = "";
+          this.form.adminPassword = "";
+          this.failedCreate = true;
+        }
+    },
+    createAccount() {
+        if (this.editFormIsValid && this.checkUniqueUsername != true) {
+          const newAccount = {
+            first_name: this.form.name,
+            last_name: this.form.surname,
+            username: this.form.username,
+            email: this.form.email,
+            password: this.form.password,
+            role_id: this.form.role,
+            adminPassword: this.form.adminPassword,
+          };
+          const jsonAccount = JSON.stringify(newAccount, {
+            type: "application/json",
+          });
+          let user = JSON.parse(localStorage.getItem("user"));
+          fetch(this.$store.state.accountAddURL, {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + user.token,
+            },
+            body: jsonAccount,
+          })
+            .then((res) => {
+              if (res.status == 400) {
+                this.$store.dispatch("auth/logout");
+                router.push("/sign-up");
+              }
+              if (res.status == 403) {
+                alert("❌Invalid admin password❌");
+              }
+              if (res.status == 200) {
+                this.getAllUsers.push(newAccount);
+                // this.$router.go();
+              }
+            })
+            .catch((err) => console.log(err));
+          this.form.name = "";
+          this.form.surname = "";
+          this.form.username = "";
+          this.form.email = "";
+          this.form.password = "";
+          this.form.role = "";
+          this.form.adminPassword = "";
+        } else {
+          this.form.password = "";
+          this.form.adminPassword = "";
+          this.failedCreate = true;
+        }
+    },
+    // in list compo
     handleDelete(id) {
       this.getAllUsers = this.getAllUsers.filter((user) => {
-        return user.id != id;
+        return user.account_id != id;
       });
     },
+    handleEdit(user) {
+      this.toggleEditAccount(user);
+    },
+    setPaginate(i) {
+      if (this.current == 1) {
+        return i < this.paginate;
+      } else {
+        return (
+          i >= this.paginate * (this.current - 1) &&
+          i < this.current * this.paginate
+        );
+      }
+    },
+    updateCurrent(i) {
+      this.current = i;
+      let table = document.querySelector("#table");
+      window.scrollTo(0, table.offsetTop);
+    },
   },
-  computed: mapGetters(["getAccounts"]),
+  computed: mapGetters(["getAccounts", "getRoles"]),
   computed: {
     getAllUsers() {
+      if (this.searchInput && this.selectedRole) {
+        return this.$store.getters.getAccounts.filter((user) => {
+          return (
+            user.role_id == this.selectedRole &&
+            user.username.toLowerCase().includes(this.searchInput)
+          );
+        });
+      } else if (this.selectedRole) {
+        return this.$store.getters.getAccounts.filter((user) => {
+          return user.role_id == this.selectedRole;
+        });
+      } else if (this.searchInput) {
+        return this.$store.getters.getAccounts.filter((user) => {
+          return user.username.toLowerCase().includes(this.searchInput);
+        });
+      }
       return this.$store.getters.getAccounts;
     },
-    queryUsers() {
-      return this.getAllUsers.filter((user) => {
-        return (
-          user.role.role_name
-            .toLowerCase()
-            .includes(this.selectedRole.toLowerCase()) &&
-          user.username.toLowerCase().includes(this.searchInput)
-        );
+    getAllRoles() {
+      return this.$store.getters.getRoles;
+    },
+    getAdminRoles() {
+      return this.$store.getters.getRoles.filter((roles) => {
+        return roles.role_name != "member";
       });
     },
     editNameIsValid() {
@@ -456,13 +665,36 @@ export default {
       );
     },
     editEmailIsValid() {
-      return !!this.form.email;
+      return !!this.form.email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.email);
     },
     editPasswordIsValid() {
       return !!this.form.password && this.form.password.length >= 8;
     },
+    editAdminPasswordIsValid() {
+      return !!this.form.adminPassword && this.form.adminPassword.length >= 8;
+    },
     editRoleIsValid() {
       return !!this.form.role;
+    },
+    checkUniqueUsername() {
+      for (let index = 0; index < this.allUsername.length; index++) {
+        if (this.isEdit == true) {
+          if (
+            this.$store.getters.getAccounts[index].account_id != this.form.id &&
+            this.allUsername[index].username.toLowerCase() == this.form.username.toLowerCase()
+          ) {
+            return true;
+          }
+        } else {
+          if (
+            this.allUsername[index].username.toLowerCase() ==
+            this.form.username.toLowerCase()
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
     },
     editFormIsValid() {
       return (
@@ -472,19 +704,45 @@ export default {
         this.editSurnameIsValid &&
         this.editNameIsValid &&
         this.noSpecialChars &&
+        this.editAdminPasswordIsValid &&
         this.editRoleIsValid
       );
     },
+    pageTotal() {
+      if (this.getAllUsers) {
+        return Math.ceil(this.getAllUsers.length / this.paginate);
+      }
+    },
   },
-  created() {
-    this.getAccountsToSite();
-  },
-  mounted() {
+  // created() {
+  //   this.getAccountsToSite();
+  //   this.getRolesToSite();
+  // },
+  async mounted() {
     window.scrollTo(0, 0);
+    await this.getAccountsToSite();
+    await this.getRolesToSite();
+    fetch(this.$store.state.usernameURL)
+      .then((res) => res.json())
+      .then((data) => {
+        this.allUsername = data.data;
+      })
+      .catch((err) => console.log(err.message));
   },
 };
 </script>
 <style scoped>
+.modal {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.25);
+  left: 0;
+  top: 0;
+  padding-top: 20rem;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
 .Users {
   margin: 3.6rem 0 4.8rem 0;
 }
@@ -572,7 +830,7 @@ tbody td {
   line-height: 1.8;
 }
 tbody:hover {
-  background-color: rgb(230, 230, 230);
+  background-color: rgb(250, 250, 250);
 }
 tbody td:nth-child(4) {
   height: 8rem;
@@ -585,6 +843,7 @@ tbody td:nth-child(4) {
 .edit {
   cursor: pointer;
   transition: 0.2s all ease-in-out;
+  text-decoration: underline;
 }
 .delete:hover {
   color: #eb435f;
@@ -601,7 +860,7 @@ label {
 input {
   width: 100%;
   border: none;
-  background: rgba(211, 211, 211, 0.45);
+  background: rgb(250, 250, 250);
   height: 2.8rem;
   padding: 0 0.8rem;
   color: #333;
@@ -697,8 +956,34 @@ label span {
   font-size: 1rem;
   color: #eb435f;
 }
-/* below 880px */
-@media (max-width: 55em) {
+#pagination {
+  margin: 5.8rem 0;
+  display: flex;
+  justify-content: center;
+}
+.btn-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0.6rem;
+  font-weight: 700;
+  transition: 00.15s all ease-in-out;
+  box-shadow: inset 0 0 0 1px #333;
+}
+.btn-page:hover {
+  background-color: #333;
+  color: #fff;
+}
+/* below 928px */
+@media (max-width: 58em) {
+  .form {
+    column-gap: 0rem;
+  }
   .table {
     display: none;
   }

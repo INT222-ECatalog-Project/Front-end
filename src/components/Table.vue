@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <th v-for="th in ths" :key="th">{{ th }}</th>
-        <th>Actions</th>
+        <th v-if="isAdmin">Actions</th>
       </tr>
     </thead>
     <slot></slot>
@@ -13,6 +13,17 @@
 export default {
   name: "Table",
   props: ["ths"],
+computed: {
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
+    isAdmin() {
+      if (this.currentUser && this.currentUser["role"] == 1) {
+        return true;
+      }
+      return false;
+    },
+}
 };
 </script>
 <style scoped>
