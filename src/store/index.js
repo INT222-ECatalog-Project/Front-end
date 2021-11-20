@@ -3,7 +3,7 @@ import router from "../router";
 import { auth } from "./auth.module";
 import authHeader from "../services/auth-header";
 let user = JSON.parse(localStorage.getItem("user"));
-const BASE_URL = "http://www.clothshop.company/back-end/api";
+const BASE_URL = "https://www.clothshop.company/back-end/api";
 // const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
