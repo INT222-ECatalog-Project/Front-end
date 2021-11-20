@@ -40,7 +40,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             export CR_PAT=${{ secrets.GITHUB_TOKEN }}
-            echo $CR_PAT | docker login ghcr.io -u giftsnt --password-stdin
+            echo $CR_PAT | docker login ghcr.io -u mai126 --password-stdin
             docker pull ghcr.io/int222-ecatalog-project/front-end
             docker images
             docker rm frontend -f
