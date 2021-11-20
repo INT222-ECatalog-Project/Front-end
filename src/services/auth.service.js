@@ -1,6 +1,6 @@
 // Authentication service
 import axios from "axios";
-const API_URL = "https://www.clothshop.company/api/";
+const API_URL = "https://www.clothshop.company/backend/api/";
 
 class AuthService {
   login(user) {
