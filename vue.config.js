@@ -12,7 +12,9 @@
 // };
 module.exports = {
   devServer: {
-      proxy: "http://localhost:9000/",
+      proxy: {
+        "^/api": "http://localhost:9000/"
+      },
       //proxy: "http://localhost:3000/backned
   }
 };
