@@ -3,11 +3,11 @@ import router from "../router";
 import { auth } from "./auth.module";
 import authHeader from "../services/auth-header";
 let user = JSON.parse(localStorage.getItem("user"));
-const BASE_URL = "https://52.187.114.221/back-end/api";
+const BASE_URL = "https://52.187.114.221/backend/api";
 // const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
-    defaultUrl: "https://52.187.114.221/back-end/api",
+    defaultUrl: "https://52.187.114.221/backend/api",
     // defaultUrl: "http://localhost:9000/api",
     products: [],
     colors: [],
