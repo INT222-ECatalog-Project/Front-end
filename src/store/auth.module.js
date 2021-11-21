@@ -40,7 +40,7 @@ export const auth = {
   mutations:{
     loginSuccess(state, user) {
         // let a = ((JSON.parse(localStorage.getItem("user")).token));
-        // const jwtDecodeValue = jwtDecrypt(user.token);
+        // const jwtDecodeValue = jwtDecrypt(a);
         // console.log(jwtDecodeValue);
         state.status.loggedIn = true;
         state.user = user;

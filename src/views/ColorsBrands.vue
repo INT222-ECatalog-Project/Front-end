@@ -356,6 +356,7 @@ import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import Popup from "@/components/Popup.vue";
 import { mapGetters, mapActions } from "vuex";
+import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
   name: "ColorsBrands",
   components: {
@@ -396,10 +397,13 @@ export default {
   computed: mapGetters(["getColors", "getBrands"]),
   computed: {
     currentUser() {
-      return this.$store.state.auth.user;
+      if (localStorage.getItem("user")) {
+              return  jwtDecrypt((JSON.parse(localStorage.getItem("user")).token));
+      }
+      return false;
     },
     isAdmin() {
-      if (this.currentUser && this.currentUser["role"] == 1) {
+      if (this.currentUser && this.currentUser.role_id == 1) {
         return true;
       }
       return false;

@@ -24,7 +24,6 @@ export default createStore({
     accounts: [],
     accountUrl: `${BASE_URL}/accounts/adminpage`,
     accountActionURL: `${BASE_URL}/account`,
-    // accountAddURL: `${BASE_URL}/register`,
     accountAddURL: `${BASE_URL}/account/addAdmin`,
     usernameURL: `${BASE_URL}/accounts`,
     username: "",
@@ -39,7 +38,6 @@ export default createStore({
     },
 
     ADD_PRODUCT(state, product) {
-      // console.log(product);
       state.products.push(product);
     },
 
@@ -237,6 +235,8 @@ export default createStore({
         if (res.status == 400) {
           this.dispatch("auth/logout")
           router.push("/sign-up");
+        }else{
+          router.go();
         }
       })
       .catch((err) => console.log(err.message));
