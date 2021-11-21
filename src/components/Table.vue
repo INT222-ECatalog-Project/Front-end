@@ -10,20 +10,24 @@
   </table>
 </template>
 <script>
+import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
   name: "Table",
   props: ["ths"],
-computed: {
+  computed: {
     currentUser() {
-      return this.$store.state.auth.user;
+      if (localStorage.getItem("user")) {
+        return jwtDecrypt(JSON.parse(localStorage.getItem("user")).token);
+      }
+      return false;
     },
     isAdmin() {
-      if (this.currentUser && this.currentUser["role"] == 1) {
+      if (this.currentUser && this.currentUser.role_id == 1) {
         return true;
       }
       return false;
     },
-}
+  },
 };
 </script>
 <style scoped>

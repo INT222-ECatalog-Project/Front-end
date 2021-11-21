@@ -29,7 +29,7 @@
                 type="text"
                 name="username"
                 id="username"
-                placeholder="admin"
+                placeholder="Username"
                 v-model="form.sign_in_username"
               />
             </div>
@@ -40,7 +40,7 @@
                   :type="type"
                   name="password"
                   id="password-sign-in"
-                  placeholder="*******"
+                  placeholder="Enter your password"
                   v-model="form.sign_in_password"
                 />
                 <div class="btn-eye" @click="togglePassword">
@@ -176,7 +176,7 @@
                 type="text"
                 name="username"
                 id="username"
-                placeholder="admin"
+                placeholder="Username"
                 v-model="form.sign_up_username"
               />
             </div>
@@ -217,7 +217,7 @@
                   :type="type"
                   name="password"
                   id="password-sign-up"
-                  placeholder="*******"
+                  placeholder="Enter your password"
                   v-model="form.sign_up_password"
                   :style="[
                     form.sign_up_password.length <= 0
@@ -922,7 +922,7 @@ a:active {
   .sign-up .input-password input::placeholder,
   .sign-up .input-name input::placeholder,
   .sign-up .input-surname input::placeholder {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(0, 0, 0, 0.35);
   }
   .sign-up .btn--full,
   .sign-up .btn--full:visited {

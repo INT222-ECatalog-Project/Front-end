@@ -276,7 +276,6 @@ export default {
       );
       return brandCount.length;
       } catch (error) {
-        // console.log(error);
         this.$router.push("/stores")
       }
     },
@@ -287,7 +286,6 @@ export default {
       );
       return categoryCount.length;
       } catch (error) {
-                // console.log(error);
         this.$router.push("/stores")
       }
     },

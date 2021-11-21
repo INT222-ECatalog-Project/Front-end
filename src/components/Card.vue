@@ -53,6 +53,7 @@
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
+import { jwtDecrypt } from "../shared/jwtHelper";
 import authHeader from "../services/auth-header";
 export default {
   name: "Card",
@@ -92,10 +93,13 @@ export default {
   computed: mapGetters(["getWishList"]),
   computed: {
     currentUser() {
-      return this.$store.state.auth.user;
+      if (localStorage.getItem("user")) {
+              return  jwtDecrypt((JSON.parse(localStorage.getItem("user")).token));
+      }
+      return false;
     },
     isMember() {
-      if (this.currentUser && this.currentUser["role"] == 3) {
+      if (this.currentUser && this.currentUser.role_id == 3) {
         return true;
       }
       return false;

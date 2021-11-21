@@ -45,7 +45,6 @@
           <div class="wishlistCount">
               <i class="far fa-heart"></i><div class="number">{{getAllWishlist.length}}</div>
           </div>
-          <!-- <div v-if="getAllWishlist"><i class="fas fa-heart"></i></div> -->
         </a>
       </div>
       <div
@@ -105,7 +104,6 @@
       <component :is="Component" :key="$route.path"></component>
     </transition>
   </router-view>
-  <!-- <router-view/> -->
 </template>
 <script>
 import EventBus from "./common/EventBus";
@@ -122,8 +120,11 @@ export default {
     logOut() {
       this.numberOfWishlist = 0;
       this.isShow = !this.isShow;
-      this.$store.dispatch("auth/logout");
-      this.$router.push("/sign-up")
+      this.$store.dispatch("auth/logout").then(
+        () => {
+          this.$router.replace("/sign-up");
+          this.$router.go();
+        })
       // sessionStorage.removeItem("store")
     },
     parseJwt(token) {
@@ -142,49 +143,42 @@ export default {
       return this.$store.getters.getWishList;
     },
     currentUser() {
-      // console.log(JSON.parse(localStorage.getItem("user")).token);
-      // if (localStorage.getItem("user")) {
-      //         // console.log(this.$store.state.auth.user.role_id);
-      //         // console.log(this.$store.state.auth.user);
-      //         // console.log(this.parseJwt((JSON.parse(localStorage.getItem("user")).token)));
-      //         // console.log(JSON.parse(localStorage.getItem("user")).token.split('.'));
-      //         // console.log(atob(JSON.parse(localStorage.getItem("user")).token.split('.')[1]));
-      //         // return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
-      // }
-
-      // return false;
+      if (localStorage.getItem("user")) {
+          return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
+      }
+      return false;
       // console.log(this.state);
-      return this.$store.state.auth.user;
     },
     isAdmin() {
-      if (this.currentUser && this.currentUser["role"] == 1) {
-        return true;
-      }
-      return false;
-      // if (this.currentUser && this.currentUser.role_id == 1) {
+      // if (this.currentUser && this.currentUser["role"] == 1) {
       //   return true;
       // }
       // return false;
+      // console.log(this.currentUser);
+      if (this.currentUser && this.currentUser.role_id == 1) {
+        return true;
+      }
+      return false;
     },
     isDeputyAdmin() {
-      if (this.currentUser && this.currentUser["role"] == 2) {
-        return true;
-      }
-      return false;
-      // if (this.currentUser && this.currentUser.role_id == 2) {
+      // if (this.currentUser && this.currentUser["role"] == 2) {
       //   return true;
       // }
       // return false;
+      if (this.currentUser && this.currentUser.role_id == 2) {
+        return true;
+      }
+      return false;
     },
     isMember() {
-      if (this.currentUser && this.currentUser["role"] == 3) {
-        return true;
-      }
-      return false;
-      // if (this.currentUser && this.currentUser.role_id == 2) {
+      // if (this.currentUser && this.currentUser["role"] == 3) {
       //   return true;
       // }
       // return false;
+      if (this.currentUser && this.currentUser.role_id == 3) {
+        return true;
+      }
+      return false;
     },
     isMobileSign() {
       return window.innerWidth;
@@ -205,7 +199,6 @@ export default {
     if (this.isMember) {
           this.getWishListToStore();
     }
-        // this.getWishListToStore();
     window.addEventListener("scroll", () => {
       if (window.scrollY > document.getElementById("nav").offsetTop) {
         document.getElementById("nav").classList.add("sticky");
@@ -260,7 +253,6 @@ export default {
   background-color: rgba(231, 227, 224, 0.75);
   padding-bottom: 3.6rem;
   backdrop-filter: blur(10px) saturate(100%) contrast(45%) brightness(130%);
-  /* webkit is for safari */
   -webkit-backdrop-filter: blur(10px) saturate(100%) contrast(45%)
     brightness(130%);
   transition: 0.3s all ease-in-out;
