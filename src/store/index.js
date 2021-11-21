@@ -3,12 +3,12 @@ import router from "../router";
 import { auth } from "./auth.module";
 import authHeader from "../services/auth-header";
 let user = JSON.parse(localStorage.getItem("user"));
-// const BASE_URL = "https://www.clothshop.company/backend/api";
-const BASE_URL = "http://localhost:9000/api";
+const BASE_URL = "https://www.clothshop.company/backend/api";
+// const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
-    // defaultUrl: "https://www.clothshop.company/backend/api",
-    defaultUrl: "http://localhost:9000/api",
+    defaultUrl: "https://www.clothshop.company/backend/api",
+    // defaultUrl: "http://localhost:9000/api",
     products: [],
     colors: [],
     brands: [],
