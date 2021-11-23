@@ -346,6 +346,9 @@
         {{ page_index }}
       </div>
     </div>
+    <div v-if="successToAdd" id="noti">
+      <Notification> {{ successData }} is completed </Notification>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -355,6 +358,7 @@ import Table from "@/components/Table.vue";
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import Popup from "@/components/Popup.vue";
+import Notification from "@/components/Notification.vue";
 import { mapGetters, mapActions } from "vuex";
 import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
@@ -364,9 +368,12 @@ export default {
     Footer,
     Table,
     Popup,
+    Notification,
   },
   data() {
     return {
+      successData: "",
+      successToAdd: false,
       current: 1,
       paginate: 20,
       failedToAdd: false,
@@ -398,7 +405,7 @@ export default {
   computed: {
     currentUser() {
       if (localStorage.getItem("user")) {
-              return  jwtDecrypt((JSON.parse(localStorage.getItem("user")).token));
+        return jwtDecrypt(JSON.parse(localStorage.getItem("user")).token);
       }
       return false;
     },
@@ -506,8 +513,14 @@ export default {
         this.$store
           .dispatch("addColor", newColor)
           .catch((err) => console.log(err));
+        this.successData = "Adding color " + this.form.color_code;
         this.form.color_code = "";
         this.form.color_name = "";
+        this.successToAdd = true;
+        setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
       } else {
         this.failedToAdd = true;
       }
@@ -536,10 +549,16 @@ export default {
         if (index !== -1) {
           this.getAllColors.splice(index, 1, editColor);
           this.$store.dispatch("editColor", editColor);
+          this.successData = "Editing color " + this.form.edit_color_code;
+          this.successToAdd = true;
           this.edit_color_id = "";
           this.form.edit_color_name = "";
           this.form.edit_color_code = "";
           this.isEditColor = false;
+          setTimeout(
+            () => ((this.successToAdd = false), (this.successData = "")),
+            2500
+          );
         }
       } else {
         this.failedToAdd = true;
@@ -564,7 +583,13 @@ export default {
         this.$store
           .dispatch("addBrand", newBrand)
           .catch((err) => console.log(err));
+        this.successData = "Adding brand " + this.form.brand_name;
+        this.successToAdd = true;
         this.form.brand_name = "";
+        setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
       } else {
         this.failedToAdd = true;
       }
@@ -592,9 +617,15 @@ export default {
         if (index !== -1) {
           this.getAllBrands.splice(index, 1, editBrand);
           this.$store.dispatch("editBrand", editBrand);
+        this.successData = "Editing brand " + this.form.edit_brand_name;
+        this.successToAdd = true;
           this.edit_brand_id = "";
           this.form.edit_brand_name = "";
           this.isEditBrand = false;
+          setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
         }
       } else {
         this.failedToAdd = true;

@@ -145,157 +145,284 @@
                 Member
               </div>
             </div>
+            <div
+              class="btn btn--full reset-btn"
+              @click="resetPassword = true"
+              v-if="!resetPassword"
+            >
+              Reset Password
+            </div>
           </div>
           <form action="" class="form">
-            <div class="form-header">Edit Profile</div>
-            <div class="input-name">
-              <label for="name"
-                >Name
-                <span
-                  v-if="!editNameIsValid && form.edit_first_name.length == 0"
-                  >*required </span
-                ><span
-                  v-if="
-                    editNameIsValid || 50 - form.edit_first_name.length <= 0
-                  "
-                  :style="[
-                    50 - form.edit_first_name.length <= 0
-                      ? { color: '#eb435f' }
-                      : { color: '#32CD32' },
-                  ]"
-                  >({{ 50 - form.edit_first_name.length }}/50)</span
-                ></label
-              >
-              <input
-                type="text"
-                name="name"
-                id="name"
-                placeholder="John"
-                v-model="form.edit_first_name"
-              />
-            </div>
-            <div class="input-surname">
-              <label for="surname"
-                >Surname
-                <span
-                  v-if="!editSurnameIsValid && form.edit_last_name.length == 0"
-                  >*required </span
-                ><span
-                  v-if="
-                    editSurnameIsValid || 50 - form.edit_last_name.length <= 0
-                  "
-                  :style="[
-                    50 - form.edit_last_name.length <= 0
-                      ? { color: '#eb435f' }
-                      : { color: '#32CD32' },
-                  ]"
-                  >({{ 50 - form.edit_last_name.length }}/50)</span
-                >
-              </label>
-              <input
-                type="text"
-                name="surname"
-                id="surname"
-                placeholder="Maxwell"
-                v-model="form.edit_last_name"
-              />
-            </div>
-            <div class="input-username">
-              <label for="username"
-                >Username
-                <span
-                  v-if="!editUsernameIsValid && form.edit_username.length == 0"
-                  >*required</span
-                >
-                <span v-if="!noSpecialChars"
-                  >no special characters(&amp;,&#60;,&#62; or commas)</span
-                >
-                <span
-                  v-if="
-                    (editUsernameIsValid && noSpecialChars) ||
-                      40 - form.edit_username.length <= 0
-                  "
-                  :style="[
-                    40 - form.edit_username.length <= 0
-                      ? { color: '#eb435f' }
-                      : { color: '#32CD32' },
-                  ]"
-                  >({{ 40 - form.edit_username.length }}/40)</span
-                >
-              </label>
-              <input
-                type="text"
-                name="username"
-                id="username"
-                placeholder="JohnMax"
-                v-model="form.edit_username"
-              />
-            </div>
-            <div class="input-email">
-              <label for="email"
-                >Email
-                <span v-if="!editEmailIsValid">*required</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="example@mail.com"
-                v-model="form.edit_email"
-              />
-            </div>
-            <div class="input-password">
-              <label for="password"
-                >Confirm Password
-                <span v-if="!confirmPasswordIsValid">*required</span>
-              </label>
-              <div class="show-hide-passwod">
-                <input
-                  :type="type"
-                  name="password"
-                  id="password"
-                  placeholder="*******"
-                  v-model="form.password"
-                />
-                <div class="btn-eye" @click="togglePassword">
-                  <div
-                    :style="[
-                      type === 'text'
-                        ? { display: 'none' }
-                        : { display: 'flex' },
-                    ]"
-                  >
-                    <i class="fas fa-eye icon"></i>
-                  </div>
-                  <div
-                    :style="[
-                      type !== 'text'
-                        ? { display: 'none' }
-                        : { display: 'flex' },
-                    ]"
-                  >
-                    <i class="fas fa-eye-slash icon"></i>
+            <div class="reset-password" v-if="resetPassword">
+              <div class="form-header">Reset Password</div>
+              <div class="input-password">
+                <label for="currentPassword"
+                  >Current Password
+                  <span v-if="!confirmPasswordIsValid">*required</span>
+                </label>
+                <div class="show-hide-passwod">
+                  <input
+                    :type="type"
+                    name="password"
+                    id="currentPassword"
+                    placeholder="*******"
+                    v-model="form.password"
+                  />
+                  <div class="btn-eye" @click="togglePassword">
+                    <div
+                      :style="[
+                        type === 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye icon"></i>
+                    </div>
+                    <div
+                      :style="[
+                        type !== 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye-slash icon"></i>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="button">
-              <div
-                class="btn btn--ghost"
-                @click="editProfile"
-                :style="[
-                  editFormIsValid
-                    ? {}
-                    : {
-                        filter: 'grayscale(1)',
-                        cursor: 'not-allowed',
-                        pointerEvents: 'none',
-                      },
-                ]"
-              >
-                Confirm Edit
+              <div class="input-password">
+                <label for="newPassword"
+                  >New Password
+                  <span v-if="!confirmPasswordIsValid">*required</span>
+                </label>
+                <div class="show-hide-passwod">
+                  <input
+                    :type="type"
+                    name="password"
+                    id="newPassword"
+                    placeholder="*******"
+                    v-model="form.password"
+                  />
+                  <div class="btn-eye" @click="togglePassword">
+                    <div
+                      :style="[
+                        type === 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye icon"></i>
+                    </div>
+                    <div
+                      :style="[
+                        type !== 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye-slash icon"></i>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="btn btn--full" @click="toggleEdit">Cancel</div>
+              <div class="input-password">
+                <label for="conNewPassword"
+                  >Confirm New Password
+                  <span v-if="!confirmPasswordIsValid">*required</span>
+                </label>
+                <div class="show-hide-passwod">
+                  <input
+                    :type="type"
+                    name="password"
+                    id="conNewPassword"
+                    placeholder="*******"
+                    v-model="form.password"
+                  />
+                  <div class="btn-eye" @click="togglePassword">
+                    <div
+                      :style="[
+                        type === 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye icon"></i>
+                    </div>
+                    <div
+                      :style="[
+                        type !== 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye-slash icon"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="btn btn--ghost">
+                Update Password
+              </div>
+              <div class="btn btn--full" @click="resetPassword = false">
+                Cancel
+              </div>
+            </div>
+            <div class="edit-profile" v-if="!resetPassword">
+              <div class="form-header">Edit Profile</div>
+              <div class="input-name">
+                <label for="name"
+                  >Name
+                  <span
+                    v-if="!editNameIsValid && form.edit_first_name.length == 0"
+                    >*required </span
+                  ><span
+                    v-if="
+                      editNameIsValid || 50 - form.edit_first_name.length <= 0
+                    "
+                    :style="[
+                      50 - form.edit_first_name.length <= 0
+                        ? { color: '#eb435f' }
+                        : { color: '#32CD32' },
+                    ]"
+                    >({{ 50 - form.edit_first_name.length }}/50)</span
+                  ></label
+                >
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  placeholder="John"
+                  v-model="form.edit_first_name"
+                />
+              </div>
+              <div class="input-surname">
+                <label for="surname"
+                  >Surname
+                  <span
+                    v-if="
+                      !editSurnameIsValid && form.edit_last_name.length == 0
+                    "
+                    >*required </span
+                  ><span
+                    v-if="
+                      editSurnameIsValid || 50 - form.edit_last_name.length <= 0
+                    "
+                    :style="[
+                      50 - form.edit_last_name.length <= 0
+                        ? { color: '#eb435f' }
+                        : { color: '#32CD32' },
+                    ]"
+                    >({{ 50 - form.edit_last_name.length }}/50)</span
+                  >
+                </label>
+                <input
+                  type="text"
+                  name="surname"
+                  id="surname"
+                  placeholder="Maxwell"
+                  v-model="form.edit_last_name"
+                />
+              </div>
+              <div class="input-username">
+                <label for="username"
+                  >Username
+                  <span
+                    v-if="
+                      !editUsernameIsValid && form.edit_username.length == 0
+                    "
+                    >*required</span
+                  >
+                  <span v-if="!noSpecialChars"
+                    >no special characters(&amp;,&#60;,&#62; or commas)</span
+                  >
+                  <span
+                    v-if="
+                      (editUsernameIsValid && noSpecialChars) ||
+                        40 - form.edit_username.length <= 0
+                    "
+                    :style="[
+                      40 - form.edit_username.length <= 0
+                        ? { color: '#eb435f' }
+                        : { color: '#32CD32' },
+                    ]"
+                    >({{ 40 - form.edit_username.length }}/40)</span
+                  >
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  placeholder="JohnMax"
+                  v-model="form.edit_username"
+                />
+              </div>
+              <div class="input-email">
+                <label for="email"
+                  >Email
+                  <span v-if="!editEmailIsValid">*required</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  placeholder="example@mail.com"
+                  v-model="form.edit_email"
+                />
+              </div>
+              <div class="input-password">
+                <label for="password"
+                  >Confirm Password
+                  <span v-if="!confirmPasswordIsValid">*required</span>
+                </label>
+                <div class="show-hide-passwod">
+                  <input
+                    :type="type"
+                    name="password"
+                    id="password"
+                    placeholder="*******"
+                    v-model="form.password"
+                  />
+                  <div class="btn-eye" @click="togglePassword">
+                    <div
+                      :style="[
+                        type === 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye icon"></i>
+                    </div>
+                    <div
+                      :style="[
+                        type !== 'text'
+                          ? { display: 'none' }
+                          : { display: 'flex' },
+                      ]"
+                    >
+                      <i class="fas fa-eye-slash icon"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="button">
+                <div
+                  class="btn btn--ghost"
+                  @click="editProfile"
+                  :style="[
+                    editFormIsValid
+                      ? {}
+                      : {
+                          filter: 'grayscale(1)',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
+                  ]"
+                >
+                  Confirm Edit
+                </div>
+                <div class="btn btn--full" @click="toggleEdit">Cancel</div>
+              </div>
             </div>
           </form>
         </div>
@@ -337,6 +464,7 @@ export default {
   },
   data() {
     return {
+      resetPassword: false,
       allUsername: "",
       failedToEdit: false,
       failedToEditText: "Invalid password",
@@ -469,7 +597,12 @@ export default {
       );
     },
     editEmailIsValid() {
-      return !!this.form.edit_email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.edit_email);
+      return (
+        !!this.form.edit_email &&
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(
+          this.form.edit_email
+        )
+      );
     },
     confirmPasswordIsValid() {
       return !!this.form.password && this.form.password.length >= 8;
@@ -931,5 +1064,11 @@ label span {
   .profile-body {
     margin: 8rem 5rem 6rem 5rem;
   }
+}
+.reset-password {
+  margin-bottom: 2rem;
+}
+.reset-btn {
+  margin-top: 1.2rem;
 }
 </style>

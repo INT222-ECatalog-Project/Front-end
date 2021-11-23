@@ -30,6 +30,7 @@
                 :src="urlImages"
                 alt=""
                 v-if="form.edit_img !== '' && preview_img == ''"
+                class="preview-img"
               />
               <img
                 :src="preview_img"
@@ -181,6 +182,11 @@
         :isTrue="false"
       />
     </div>
+        <div v-if="successToEdit" id="noti">
+      <Notification>
+        Editing product is completed
+      </Notification>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -189,16 +195,19 @@
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import Popup from "@/components/Popup.vue";
+import Notification from "@/components/Notification.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
   components: {
     Socials,
     Footer,
     Popup,
+    Notification
   },
   props: ["id"],
   data() {
     return {
+      successToEdit: false,
       failedToEdit: false,
       failedEditProductText: "This product name has already used",
       urlImages: this.$store.state.defaultUrl + "/image/" + this.id,
@@ -279,7 +288,8 @@ export default {
           (this.form.edit_img = ""),
           (this.preview_img = ""),
           (this.name_img = "");
-        this.$router.push(`/stores/product/${this.id}`);
+        this.successToEdit = true;
+        setTimeout(() => (this.successToEdit = false, this.$router.push(`/stores/product/${this.id}`)), 900);
       } else {
         this.failedToEdit = true;
       }
