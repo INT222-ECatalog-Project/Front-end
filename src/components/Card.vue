@@ -35,7 +35,8 @@
         <div v-if="product.brand">{{ product.brand.brand_name }}</div>
       </div>
       <div class="product-name">
-        {{ product.product_name }}
+        {{ product.product_name.substring(0,40) }}
+        <div v-if="product.product_name.length >= 40">...</div>
       </div>
       <div class="product-price">฿{{ product.price }}</div>
       <div class="product-colors">
@@ -323,5 +324,14 @@ export default {
     padding: 1rem;
     border-radius: 50%;
   }
+}
+.like-icon .icon.press{
+  animation: fade 1s;
+}
+@keyframes size {
+  0% {padding:10px 12px 8px;}
+  50% {padding:14px 16px 12px;  
+    margin-top:-4px;}
+  100% {padding:10px 12px 8px;}
 }
 </style>

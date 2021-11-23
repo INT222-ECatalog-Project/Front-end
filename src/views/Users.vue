@@ -105,7 +105,11 @@
                 v-model="form.email"
               />
             </div>
-            <div class="password">
+            <div class="old-password" v-if="isEdit">
+              <input type="checkbox" id="useOldPass" name="useOldPass" v-model="useFormerPassword" checked>
+              <label for="useOldPass">Use former password</label><br>
+            </div>
+            <div class="password" v-if="!useFormerPassword || !isEdit">
               <label for="password"
                 >Password
                 <span v-if="!editPasswordIsValid"
@@ -158,9 +162,7 @@
             <div class="password">
               <label for="password-admin"
                 >Admin password
-                <span v-if="!editPasswordIsValid"
-                  >*required</span
-                >
+                <span v-if="!editPasswordIsValid">*required</span>
               </label>
               <input
                 :type="type"
@@ -374,6 +376,9 @@
         :isTrue="false"
       />
     </div>
+    <div v-if="successToAdd" id="noti">
+      <Notification> {{ successData }} is completed </Notification>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -384,6 +389,8 @@ import Footer from "@/components/Footer.vue";
 import List from "@/components/List.vue";
 import Table from "@/components/Table.vue";
 import Popup from "@/components/Popup.vue";
+import Notification from "@/components/Notification.vue";
+import { jwtDecrypt } from "../shared/jwtHelper";
 import { mapGetters, mapActions } from "vuex";
 export default {
   name: "Users",
@@ -393,9 +400,13 @@ export default {
     List,
     Table,
     Popup,
+    Notification,
   },
   data() {
     return {
+      useFormerPassword:true,
+      successData: "",
+      successToAdd: false,
       failedCreate: false,
       failedCreateText: "This username has already used",
       current: 1,
@@ -410,6 +421,7 @@ export default {
       deputyAdminFilter: false,
       memberFilter: false,
       confirmPassword: "",
+      account_id: "",
       ths: ["No", "First Name", "Last Name", "Username", "Email", "Role"],
       form: {
         id: "",
@@ -418,7 +430,7 @@ export default {
         username: "",
         email: "",
         password: "",
-        adminPassword:"",
+        adminPassword: "",
         role: "",
       },
     };
@@ -489,109 +501,125 @@ export default {
       }
     },
     editAccount() {
-        if (this.editFormIsValid && this.checkUniqueUsername != true) {
-          const index = this.getAllUsers.findIndex(
-            (account) => account.account_id == this.form.id
-          );
-          if (index !== -1) {
-            const editAccount = {
-              account_id: this.form.id,
-              first_name: this.form.name,
-              last_name: this.form.surname,
-              username: this.form.username,
-              email: this.form.email,
-              userPassword: this.form.password,
-              adminPassword: this.form.adminPassword,
-              role_id: this.form.role,
-            };
-            let user = JSON.parse(localStorage.getItem("user"));
-            const jsonEditAccount = JSON.stringify(editAccount, {
-              type: "application/json",
-            });
-            fetch(
-              this.$store.state.accountActionURL + "/" + editAccount.account_id,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-type": "application/json",
-                  Authorization: "Bearer " + user.token,
-                },
-                body: jsonEditAccount,
-              }
-            )
-              .then((response) => {
-                if (response.status === 200) {
-                  this.$store.getters.getAccounts.splice(index, 1, editAccount);
-                } else {
-                  alert("❌Invalid admin password❌");
-                }
-              })
-              .catch((err) => console.log(err));
-            this.isEdit = false;
-            this.form.account_id = "";
-            this.form.name = "";
-            this.form.surname = "";
-            this.form.username = "";
-            this.form.email = "";
-            this.form.password = "";
-            this.form.adminPassword = "";
-            this.form.role = "";
-          }
-        } else {
-          this.form.password = "";
-          this.form.adminPassword = "";
-          this.failedCreate = true;
-        }
-    },
-    createAccount() {
-        if (this.editFormIsValid && this.checkUniqueUsername != true) {
-          const newAccount = {
+      if (this.useFormerPassword) {
+        this.form.password = "";
+      }
+      if (this.editFormIsValid && this.checkUniqueUsername != true) {
+        const index = this.getAllUsers.findIndex(
+          (account) => account.account_id == this.form.id
+        );
+        if (index !== -1) {
+          const editAccount = {
+            account_id: this.form.id,
             first_name: this.form.name,
             last_name: this.form.surname,
             username: this.form.username,
             email: this.form.email,
-            password: this.form.password,
-            role_id: this.form.role,
+            userPassword: this.form.password,
             adminPassword: this.form.adminPassword,
+            role_id: this.form.role,
           };
-          const jsonAccount = JSON.stringify(newAccount, {
+          let user = JSON.parse(localStorage.getItem("user"));
+          const jsonEditAccount = JSON.stringify(editAccount, {
             type: "application/json",
           });
-          let user = JSON.parse(localStorage.getItem("user"));
-          fetch(this.$store.state.accountAddURL, {
-            method: "POST",
-            headers: {
-              "Content-type": "application/json",
-              Authorization: "Bearer " + user.token,
-            },
-            body: jsonAccount,
-          })
-            .then((res) => {
-              if (res.status == 400) {
-                this.$store.dispatch("auth/logout");
-                router.push("/sign-up");
-              }
-              if (res.status == 403) {
+          fetch(
+            this.$store.state.accountActionURL + "/" + editAccount.account_id,
+            {
+              method: "PUT",
+              headers: {
+                "Content-type": "application/json",
+                Authorization: "Bearer " + user.token,
+              },
+              body: jsonEditAccount,
+            }
+          )
+            .then((response) => {
+              if (response.status === 200) {
+                this.$store.getters.getAccounts.splice(index, 1, editAccount);
+                this.successData = "Editing user " + editAccount.username;
+                this.successToAdd = true;
+              } else {
                 alert("❌Invalid admin password❌");
-              }
-              if (res.status == 200) {
-                this.getAllUsers.push(newAccount);
-                // this.$router.go();
               }
             })
             .catch((err) => console.log(err));
+          this.isEdit = false;
+          this.form.account_id = "";
           this.form.name = "";
           this.form.surname = "";
           this.form.username = "";
           this.form.email = "";
           this.form.password = "";
+          this.form.adminPassword = "";
           this.form.role = "";
-          this.form.adminPassword = "";
-        } else {
-          this.form.password = "";
-          this.form.adminPassword = "";
-          this.failedCreate = true;
+          setTimeout(
+            () => ((this.successToAdd = false), (this.successData = "")),
+            2500
+          );
         }
+      } else {
+        this.form.password = "";
+        this.form.adminPassword = "";
+        this.failedCreate = true;
+      }
+    },
+    createAccount() {
+      if (this.editFormIsValid && this.checkUniqueUsername != true) {
+        const newAccount = {
+          first_name: this.form.name,
+          last_name: this.form.surname,
+          username: this.form.username,
+          email: this.form.email,
+          password: this.form.password,
+          role_id: this.form.role,
+          adminPassword: this.form.adminPassword,
+        };
+        const jsonAccount = JSON.stringify(newAccount, {
+          type: "application/json",
+        });
+        let user = JSON.parse(localStorage.getItem("user"));
+        fetch(this.$store.state.accountAddURL, {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+            Authorization: "Bearer " + user.token,
+          },
+          body: jsonAccount,
+        })
+          .then((res) => {
+            if (res.status == 400) {
+              this.$store.dispatch("auth/logout");
+              router.push("/sign-up");
+            }
+            if (res.status == 403) {
+              alert("❌Invalid admin password❌");
+            }
+            if (res.status == 200) {
+              this.getAllUsers.push(newAccount);
+              this.successData = "Adding user " + newAccount.username;
+              this.successToAdd = true;
+              this.current = 1;
+              // this.$router.go();
+            }
+          })
+          .catch((err) => console.log(err));
+        this.form.name = "";
+        this.form.surname = "";
+        this.form.username = "";
+        this.form.email = "";
+        this.form.password = "";
+        this.form.role = "";
+        this.form.adminPassword = "";
+        setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
+      } else {
+        this.form.password = "";
+        this.form.adminPassword = "";
+        this.failedCreate = true;
+      }
     },
     // in list compo
     handleDelete(id) {
@@ -621,23 +649,35 @@ export default {
   computed: mapGetters(["getAccounts", "getRoles"]),
   computed: {
     getAllUsers() {
+      this.account_id = jwtDecrypt(
+        JSON.parse(localStorage.getItem("user")).token
+      ).account_id;
       if (this.searchInput && this.selectedRole) {
         return this.$store.getters.getAccounts.filter((user) => {
           return (
+            user.account_id != this.account_id &&
             user.role_id == this.selectedRole &&
             user.username.toLowerCase().includes(this.searchInput)
           );
         });
       } else if (this.selectedRole) {
         return this.$store.getters.getAccounts.filter((user) => {
-          return user.role_id == this.selectedRole;
+          return (
+            user.role_id == this.selectedRole &&
+            user.account_id != this.account_id
+          );
         });
       } else if (this.searchInput) {
         return this.$store.getters.getAccounts.filter((user) => {
-          return user.username.toLowerCase().includes(this.searchInput);
+          return (
+            user.username.toLowerCase().includes(this.searchInput) &&
+            user.account_id != this.account_id
+          );
         });
       }
-      return this.$store.getters.getAccounts;
+      return this.$store.getters.getAccounts.filter((user) => {
+        return user.account_id != this.account_id;
+      });
     },
     getAllRoles() {
       return this.$store.getters.getRoles;
@@ -665,9 +705,17 @@ export default {
       );
     },
     editEmailIsValid() {
-      return !!this.form.email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.email);
+      return (
+        !!this.form.email &&
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(
+          this.form.email
+        )
+      );
     },
     editPasswordIsValid() {
+      if (this.useFormerPassword) {
+        return true;
+      }
       return !!this.form.password && this.form.password.length >= 8;
     },
     editAdminPasswordIsValid() {
@@ -681,7 +729,8 @@ export default {
         if (this.isEdit == true) {
           if (
             this.$store.getters.getAccounts[index].account_id != this.form.id &&
-            this.allUsername[index].username.toLowerCase() == this.form.username.toLowerCase()
+            this.allUsername[index].username.toLowerCase() ==
+              this.form.username.toLowerCase()
           ) {
             return true;
           }
@@ -1056,5 +1105,19 @@ label span {
   .add-user {
     padding: 2rem;
   }
+}
+.old-password {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 1.4rem 0 2.4rem 0;
+}
+.old-password label{
+  display: inline;
+}
+input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  margin-bottom: 1rem;
 }
 </style>

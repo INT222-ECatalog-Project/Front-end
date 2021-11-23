@@ -144,7 +144,11 @@
                   :style="[
                     formIsValid
                       ? { backgroundColor: '#333' }
-                      : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
+                      : {
+                          backgroundColor: '#707070',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
                   ]"
                   class="btn btn--full"
                   type="submit"
@@ -164,6 +168,11 @@
         :isTrue="false"
       />
     </div>
+    <div v-if="successToAdd" id="noti">
+      <Notification>
+        Adding product is completed
+      </Notification>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -172,15 +181,18 @@
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import Popup from "@/components/Popup.vue";
+import Notification from "@/components/Notification.vue";
 import { mapGetters, mapActions } from "vuex";
 export default {
   components: {
     Socials,
     Footer,
     Popup,
+    Notification
   },
   data() {
     return {
+      successToAdd: false,
       failedToAdd: false,
       failedAddProductText: "This product name has already used",
       colors: [],
@@ -324,6 +336,8 @@ export default {
           (this.form.prod_img = ""),
           (this.preview_img = ""),
           (this.form.name_img = "");
+        this.successToAdd = true;
+        setTimeout(() => (this.successToAdd = false), 2500);
       } else {
         this.failedToAdd = true;
       }
@@ -595,12 +609,11 @@ textarea:focus {
     margin: 0 25%;
     height: 48rem;
   }
-  .display-img img{
+  .display-img img {
     width: 90%;
     margin: 0 5%;
     height: 48rem;
   }
-  
 }
 
 /* below 530px */

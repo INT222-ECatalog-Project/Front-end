@@ -82,14 +82,14 @@
           </button>
         </header>
         <div class="targets">
-          <a href="" class="button">
+          <a :href="'//www.facebook.com/sharer/sharer.php?u='+href" target="_blank" class="button">
             <i
               class="icon fab fa-facebook-square"
               :style="{ color: '#4267B2' }"
             ></i>
             <span>Facebook</span>
           </a>
-          <a href="" class="button">
+          <a :href="'//twitter.com/intent/tweet?text=A+New+Page&url'+href" target="_blank" class="button">
             <i
               class="icon fab fa-twitter-square"
               :style="{ color: '#1DA1F2' }"
@@ -114,6 +114,9 @@
         </div>
       </div>
     </div>
+    <div v-if="successToAdd" id="noti">
+      <Notification>Copy to clipboard</Notification>
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -122,6 +125,7 @@
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import authHeader from "../services/auth-header";
+import Notification from "@/components/Notification.vue";
 import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
   props: ["id"],
@@ -129,9 +133,11 @@ export default {
   components: {
     Socials,
     Footer,
+    Notification,
   },
   data() {
     return {
+      successToAdd: false,
       urlImages: this.$store.state.defaultUrl + "/image/" + this.id,
       urlProductShow: this.$store.state.defaultUrl + "/products/" + this.id,
       product: {},
@@ -156,6 +162,8 @@ export default {
       try {
         var successful = document.execCommand("copy");
         var msg = successful ? "successful" : "unsuccessful";
+        this.successToAdd = true;
+        setTimeout(() => (this.successToAdd = false), 2500);
         this.isShare = false;
       } catch (err) {
         this.isShare = false;
