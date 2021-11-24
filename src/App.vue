@@ -26,7 +26,7 @@
             </li>
           </ul>
         </div>
-        <router-link v-if="currentUser" to="/profile">Profile</router-link>
+        <router-link v-if="currentUser" to="/profile"><i class="fas fa-user icon" :style="{marginRight:'1rem'}"></i>{{currentUser.username}}</router-link>
         <router-link
           v-if="currentUser"
           to="/sign-up"
@@ -77,7 +77,7 @@
         <router-link to="/users" v-if="isAdmin" @click="isShow = !isShow"
           >Users</router-link
         >
-        <router-link v-if="currentUser" to="/profile" @click="isShow = !isShow">Profile</router-link>
+        <router-link v-if="currentUser" to="/profile" @click="isShow = !isShow"><i class="fas fa-user icon" :style="{marginRight:'1rem'}"></i>{{currentUser.username}}</router-link>
         <router-link
           v-if="currentUser"
           to="/sign-up"
