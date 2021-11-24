@@ -99,7 +99,7 @@
             ut dignissimos quia consequuntur animi beatae!
           </div>
           <div class="button">
-            <a href="#" class="btn btn--full">Get yours</a>
+            <router-link class="btn btn--full" to="/sign-up">Get yours</router-link>
             <a href="#" class="btn btn--ghost">Learn more &darr;</a>
           </div>
         </div>
@@ -155,7 +155,9 @@
                 We're totally set on (basic) sets.
               </div>
               <div class="btn-new">
-                <a class="btn btn--full" href="#">Shop now</a>
+                <router-link class="btn btn--full" to="/stores"
+                  >Shop now</router-link
+                >
               </div>
             </div>
             <div class="big-circle"></div>
@@ -165,43 +167,109 @@
             <div class="cards grid grid--2-cols">
               <div class="card" v-if="categories[0].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides1" :key="slide">
-                    <img :src="slide" alt="Product Images for Men" />
+                  <splide-slide
+                    v-for="slide in getShirts.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Shirts"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
               <div class="card" v-if="categories[1].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides2" :key="slide">
-                    <img :src="slide" alt="Product Images for Women" />
+                  <splide-slide
+                    v-for="slide in getSweaters.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Sweaters"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
               <div class="card" v-if="categories[2].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides3" :key="slide">
-                    <img :src="slide" alt="Product Images for Kids" />
+                  <splide-slide
+                    v-for="slide in getJackets.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Jackets"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
               <div class="card" v-if="categories[3].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides4" :key="slide">
-                    <img :src="slide" alt="Bags/Purse Images" />
+                  <splide-slide
+                    v-for="slide in getCoats.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Coats"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
               <div class="card" v-if="categories[4].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides5" :key="slide">
-                    <img :src="slide" alt="Accessory Images" />
+                  <splide-slide
+                    v-for="slide in getPants.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Pants"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
               <div class="card" v-if="categories[5].selected">
                 <splide :options="options">
-                  <splide-slide v-for="slide in slides6" :key="slide">
-                    <img :src="slide" alt="Shoes Images" />
+                  <splide-slide
+                    v-for="slide in getDresses.reverse().slice(0, 3)"
+                    :key="slide.product_id"
+                  >
+                    <img
+                      @click="goToProductPage(slide.product_id)"
+                      :src="urlImages + slide.product_id"
+                      alt="Product Images for Pants"
+                      @error="
+                        $event.target.src =
+                          'http://www.grand-cordel.com/wp-content/uploads/2015/08/import_placeholder.png'
+                      "
+                    />
                   </splide-slide>
                 </splide>
               </div>
@@ -216,7 +284,9 @@
                     >
                   </li>
                   <li class="see-more">
-                    <a @click="$router.push('/stores')">See more <span>&rarr;</span></a>
+                    <a @click="$router.push('/stores')"
+                      >See more <span>&rarr;</span></a
+                    >
                   </li>
                 </ul>
               </div>
@@ -401,6 +471,7 @@
 import Socials from "@/components/Socials.vue";
 import Footer from "@/components/Footer.vue";
 import { Splide, SplideSlide } from "@splidejs/vue-splide";
+import { mapGetters, mapActions } from "vuex";
 export default {
   name: "Home",
   components: {
@@ -411,6 +482,7 @@ export default {
   },
   data() {
     return {
+      urlImages: this.$store.state.defaultUrl + "/image/",
       options: {
         rewind: true,
         gap: "2rem",
@@ -483,32 +555,32 @@ export default {
       categories: [
         {
           id: 1,
-          text: "Men",
+          text: "Shirts",
           selected: true,
         },
         {
           id: 2,
-          text: "Women",
+          text: "Sweaters",
           selected: false,
         },
         {
           id: 3,
-          text: "Kids",
+          text: "Jackets",
           selected: false,
         },
         {
           id: 4,
-          text: "Bags/Purse",
+          text: "Coats",
           selected: false,
         },
         {
           id: 5,
-          text: "Accessories",
+          text: "Pants",
           selected: false,
         },
         {
           id: 6,
-          text: "Shoes",
+          text: "Dresses",
           selected: false,
         },
       ],
@@ -560,7 +632,7 @@ export default {
           id: 3,
           name: "Praepanwa",
           lastname: "Tedprasit",
-          positions: ["Backend", "Devops"],
+          positions: ["Backend"],
           text:
             "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid nihil beatae temporibus assumenda delectus sit",
           image: require("../../src/assets/images/hero-image-4.jpg"),
@@ -570,6 +642,10 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["getProductsToStore"]),
+    goToProductPage(id) {
+      this.$router.push("/stores/product/" + id);
+    },
     changeImg(id) {
       if (id == this.cursorBgImage + 1) {
         this.cursorBgImage = 0;
@@ -608,13 +684,68 @@ export default {
       this.members[this.cursorMember - 1].show = true;
     },
   },
+  computed: mapGetters(["getProducts"]),
   computed: {
+    getAllproducts() {
+      return this.$store.getters.getProducts;
+    },
+    getShirts() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[0].text.toLowerCase()
+        );
+      });
+    },
+    getSweaters() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[1].text.toLowerCase()
+        );
+      });
+    },
+    getJackets() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[2].text.toLowerCase()
+        );
+      });
+    },
+    getCoats() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[3].text.toLowerCase()
+        );
+      });
+    },
+    getPants() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[4].text.toLowerCase()
+        );
+      });
+    },
+    getDresses() {
+      return this.getAllproducts.filter((product) => {
+        return (
+          product.category.category_name.toLowerCase() ==
+          this.categories[5].text.toLowerCase()
+        );
+      });
+    },
     cssVar() {
       return {
         width: this.bgImages[this.cursorBgImage].textSpan.length + 1 + "ch",
         // width: 6 + "ch",
       };
     },
+  },
+  created() {
+    this.getProductsToStore();
   },
   mounted() {
     window.scrollTo(0, 0);
