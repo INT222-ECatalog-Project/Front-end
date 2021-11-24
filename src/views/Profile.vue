@@ -159,15 +159,15 @@
               <div class="input-password">
                 <label for="currentPassword"
                   >Current Password
-                  <span v-if="!confirmPasswordIsValid">*required</span>
+                  <span v-if="!currentPasswordIsValid">*required</span>
                 </label>
                 <div class="show-hide-passwod">
                   <input
                     :type="type"
                     name="password"
                     id="currentPassword"
-                    placeholder="*******"
-                    v-model="form.password"
+                    placeholder="Enter current password"
+                    v-model="form.currentPassword"
                   />
                   <div class="btn-eye" @click="togglePassword">
                     <div
@@ -194,15 +194,15 @@
               <div class="input-password">
                 <label for="newPassword"
                   >New Password
-                  <span v-if="!confirmPasswordIsValid">*required</span>
+                  <span v-if="!newPasswordIsValid">*required</span>
                 </label>
                 <div class="show-hide-passwod">
                   <input
                     :type="type"
                     name="password"
                     id="newPassword"
-                    placeholder="*******"
-                    v-model="form.password"
+                    placeholder="Enter new password"
+                    v-model="form.newPassword"
                   />
                   <div class="btn-eye" @click="togglePassword">
                     <div
@@ -229,15 +229,16 @@
               <div class="input-password">
                 <label for="conNewPassword"
                   >Confirm New Password
-                  <span v-if="!confirmPasswordIsValid">*required</span>
+                  <span v-if="!confirmNewPasswordIsValid && isPasswordMatch">*required</span>
+                  <span v-if="!isPasswordMatch">Password do NOT match</span>
                 </label>
                 <div class="show-hide-passwod">
                   <input
                     :type="type"
                     name="password"
                     id="conNewPassword"
-                    placeholder="*******"
-                    v-model="form.password"
+                    placeholder="Enter new password"
+                    v-model="form.confirmNewPassword"
                   />
                   <div class="btn-eye" @click="togglePassword">
                     <div
@@ -261,7 +262,17 @@
                   </div>
                 </div>
               </div>
-              <div class="btn btn--ghost">
+              <div class="btn btn--ghost"
+                                :style="[
+                    resetPasswordIsValid
+                      ? {}
+                      : {
+                          filter: 'grayscale(1)',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
+                  ]"
+              >
                 Update Password
               </div>
               <div class="btn btn--full" @click="resetPassword = false">
@@ -355,6 +366,7 @@
                   id="username"
                   placeholder="JohnMax"
                   v-model="form.edit_username"
+                  readonly
                 />
               </div>
               <div class="input-email">
@@ -487,6 +499,9 @@ export default {
         edit_username: "",
         edit_email: "",
         password: "",
+        currentPassword:"",
+        newPassword:"",
+        confirmNewPassword:""
       },
       isEdit: false,
       type: "password",
@@ -629,6 +644,26 @@ export default {
         this.noSpecialChars
       );
     },
+    currentPasswordIsValid() {
+      return !!this.form.currentPassword && this.form.currentPassword.length >= 8;
+    },
+    newPasswordIsValid() {
+      return !!this.form.newPassword && this.form.newPassword.length >= 8;
+    },
+    confirmNewPasswordIsValid() {
+      return !!this.form.confirmNewPassword && this.form.confirmNewPassword >= 8;
+    },
+    isPasswordMatch() {
+      return this.form.newPassword == this.form.confirmNewPassword;
+    },
+    resetPasswordIsValid() {
+      return (
+        this.currentPasswordIsValid &&
+        this.newPasswordIsValid &&
+        this.confirmNewPasswordIsValid &&
+        this.isPasswordMatch
+      );
+    }
   },
   async mounted() {
     await this.getProfileToSite();
@@ -1051,7 +1086,7 @@ label span {
   .profile-container {
     margin: 0;
     width: 100%;
-    height: auto;
+    height: 100vh;
     position: absolute;
     transform: translateY(-7rem);
   }
