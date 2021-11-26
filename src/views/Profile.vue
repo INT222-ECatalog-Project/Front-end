@@ -294,7 +294,7 @@
                         : { color: '#333' },
                     ]"
                   >
-                    Contain special characters ! @ # $ % ^ &amp; * ( ) _.
+                    Contain special characters ! @ # $ % ^ &amp; * _.
                   </div>
                 </div>
               </div>
