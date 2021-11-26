@@ -72,7 +72,11 @@
               :style="
                 signInUsernameisValid && signInPasswordisValid
                   ? {}
-                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' }
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    }
               "
             >
               Sign in
@@ -202,19 +206,22 @@
                   :style="{ color: '#FFD700' }"
                   v-if="
                     form.sign_up_password.length >= 8 &&
-                      form.sign_up_password.length < 10
+                      form.sign_up_password.length < 10 &&
+                      checkStronPassword
                   "
                   >good</span
                 >
                 <span
                   :style="{ color: '#32CD32' }"
-                  v-if="form.sign_up_password.length >= 10"
+                  v-if="
+                    checkStronPassword && form.sign_up_password.length >= 10
+                  "
                   >excellent</span
                 >
               </label>
               <div class="show-hide-passwod">
                 <input
-                  :type="type"
+                  :type="typeSignUp"
                   name="password"
                   id="password-sign-up"
                   placeholder="Enter your password"
@@ -222,18 +229,21 @@
                   :style="[
                     form.sign_up_password.length <= 0
                       ? { backgroundColor: '' }
-                      : form.sign_up_password.length < 8
+                      : !checkStronPassword
                       ? { backgroundColor: '#f9cede' }
                       : form.sign_up_password.length >= 8 &&
-                        form.sign_up_password.length < 10
+                        form.sign_up_password.length < 10 &&
+                        checkStronPassword
                       ? { backgroundColor: '#fff7cc' }
-                      : { backgroundColor: '#d6f5d6' },
+                      : checkStronPassword
+                      ? { backgroundColor: '#d6f5d6' }
+                      : {},
                   ]"
                 />
-                <div class="btn-eye" @click="togglePassword">
+                <div class="btn-eye" @click="togglePasswordSignUp">
                   <div
                     :style="[
-                      type === 'text'
+                      typeSignUp === 'text'
                         ? { display: 'none' }
                         : { display: 'flex' },
                     ]"
@@ -242,13 +252,56 @@
                   </div>
                   <div
                     :style="[
-                      type !== 'text'
+                      typeSignUp !== 'text'
                         ? { display: 'none' }
                         : { display: 'flex' },
                     ]"
                   >
                     <i class="fas fa-eye-slash icon"></i>
                   </div>
+                </div>
+              </div>
+              <div class="warnings">
+                <div class="warning-header">
+                  Password must:
+                </div>
+                <div
+                  class="warning"
+                  :style="[
+                    isPasswordLenght ? { color: '#35e08e' } : { color: '#333' },
+                  ]"
+                >
+                  Be at least 8 characters.
+                </div>
+                <div
+                  class="warning"
+                  :style="[
+                    isPasswordIncludeUppercase && isPasswordIncludeLowercase
+                      ? { color: '#35e08e' }
+                      : { color: '#333' },
+                  ]"
+                >
+                  Contain both UPPERCASE and lowercase characters.
+                </div>
+                <div
+                  class="warning"
+                  :style="[
+                    isPasswordIncludeNumber
+                      ? { color: '#35e08e' }
+                      : { color: '#333' },
+                  ]"
+                >
+                  Contain numbers.
+                </div>
+                <div
+                  class="warning"
+                  :style="[
+                    isPasswordIncludeSpecial
+                      ? { color: '#35e08e' }
+                      : { color: '#333' },
+                  ]"
+                >
+                  Contain special characters ! @ # $ % ^ &amp; * ( ) _.
                 </div>
               </div>
             </div>
@@ -258,7 +311,11 @@
               :style="[
                 signUpFormIsValid
                   ? { backgroundColor: '#333' }
-                  : { backgroundColor: '#707070', cursor: 'not-allowed', pointerEvents: 'none' },
+                  : {
+                      backgroundColor: '#707070',
+                      cursor: 'not-allowed',
+                      pointerEvents: 'none',
+                    },
               ]"
             >
               Sign up
@@ -335,6 +392,7 @@ export default {
       loading: false, //login + signup
       message: "", //login + signup
       type: "password",
+      typeSignUp: "password",
       successful: false, //signup
       isSignUp: false,
       form: {
@@ -346,10 +404,10 @@ export default {
         sign_up_email: "",
         sign_up_password: "",
       },
-      allUsername:""
+      allUsername: "",
     };
   },
-  computed: mapGetters(["getAccounts","getUsernames"]),
+  computed: mapGetters(["getAccounts", "getUsernames"]),
   mounted() {
     window.scrollTo(0, 0);
     if (this.loggedIn) {
@@ -357,12 +415,12 @@ export default {
     }
     this.getAccountsToSite();
     this.getAllUsernames();
-          fetch(this.$store.state.usernameURL)
-        .then((res) => res.json())
-        .then((data) => {
-          this.allUsername = data.data
-        })
-        .catch((err) => console.log(err.message));
+    fetch(this.$store.state.usernameURL)
+      .then((res) => res.json())
+      .then((data) => {
+        this.allUsername = data.data;
+      })
+      .catch((err) => console.log(err.message));
   },
   created() {
     if (this.loggedIn) {
@@ -384,7 +442,10 @@ export default {
     },
     checkUniqueUsername() {
       for (let index = 0; index < this.allUsername.length; index++) {
-        if (this.allUsername[index].username.toLowerCase() == this.form.sign_up_username.toLowerCase()) {
+        if (
+          this.allUsername[index].username.toLowerCase() ==
+          this.form.sign_up_username.toLowerCase()
+        ) {
           return true;
         }
       }
@@ -411,11 +472,38 @@ export default {
       );
     },
     signUpEmailIsValid() {
-      return !!this.form.sign_up_email && /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(this.form.sign_up_email);
+      return (
+        !!this.form.sign_up_email &&
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(
+          this.form.sign_up_email
+        )
+      );
     },
     signUpPasswordIsValid() {
+      return !!this.form.sign_up_password;
+    },
+    isPasswordLenght() {
+      return this.form.sign_up_password.length >= 8;
+    },
+    isPasswordIncludeUppercase() {
+      return /[A-Z]/.test(this.form.sign_up_password);
+    },
+    isPasswordIncludeLowercase() {
+      return /[a-z]/.test(this.form.sign_up_password);
+    },
+    isPasswordIncludeNumber() {
+      return /[0-9]/.test(this.form.sign_up_password);
+    },
+    isPasswordIncludeSpecial() {
+      return /[_#?!@$%^&*-]/.test(this.form.sign_up_password);
+    },
+    checkStronPassword() {
       return (
-        !!this.form.sign_up_password && this.form.sign_up_password.length >= 8
+        this.isPasswordIncludeSpecial &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordLenght
       );
     },
     signUpFormIsValid() {
@@ -425,7 +513,12 @@ export default {
         this.signUpUsernameIsValid &&
         this.signUpSurnameIsValid &&
         this.signUpNameIsValid &&
-        this.noSpecialChars
+        this.noSpecialChars &&
+        this.isPasswordLenght &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeSpecial
       );
     },
     loggedIn() {
@@ -433,7 +526,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getAccountsToSite","getAllUsernames"]),
+    ...mapActions(["getAccountsToSite", "getAllUsernames"]),
     goBack() {
       this.$router.go(-1);
     },
@@ -442,6 +535,13 @@ export default {
         this.type = "text";
       } else if (this.type === "text") {
         this.type = "password";
+      }
+    },
+    togglePasswordSignUp() {
+      if (this.typeSignUp === "password") {
+        this.typeSignUp = "text";
+      } else if (this.typeSignUp === "text") {
+        this.typeSignUp = "password";
       }
     },
     createAccount() {
@@ -946,5 +1046,23 @@ a:active {
     box-shadow: inset 0 0 0 1px #333;
     color: #333;
   }
+}
+.warnings {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+  background-color: rgb(245, 245, 245);
+  padding: 1.2rem 1.4rem;
+  border-radius: 0.6rem;
+}
+.warning-header {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.warning {
+  font-size: 1.3rem;
+  padding-left: 1rem;
 }
 </style>

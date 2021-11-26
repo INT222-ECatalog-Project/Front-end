@@ -126,6 +126,20 @@
               placeholder="my style"
               v-model="searchInput"
             />
+            <div class="filter-icon">
+              <div class="filter-more">
+                <i class="fas fa-filter"></i>
+              </div>
+              <div class="filter-hover">
+                <ul>
+                  <li @click="toggleSortDefault" :style="[sortDefault ? {color:'#eb435f'}:{color:'#555'}]">Default</li>
+                  <li @click="toggleSortLatestDate" :style="[sortLatest ? {color:'#eb435f'}:{color:'#555'}]">Latest-Oldest</li>
+                  <li @click="toggleSortOldestDate" :style="[sortOldest ? {color:'#eb435f'}:{color:'#555'}]">Oldest-Latest</li>
+                  <li @click="toggleSortExpensive" :style="[sortExpensive ? {color:'#eb435f'}:{color:'#555'}]">High-Eco</li>
+                  <li @click="toggleSortCheap" :style="[sortCheap ? {color:'#eb435f'}:{color:'#555'}]">Eco-High</li>
+                </ul>
+              </div>
+            </div>
           </div>
           <div class="brand-filter-mb">
             <div
@@ -173,7 +187,11 @@
         </div>
         <div id="pagination">
           <div
-          :style="[ current == page_index ? {backgroundColor:'#333', color:'#fff'}:{}]"
+            :style="[
+              current == page_index
+                ? { backgroundColor: '#333', color: '#fff' }
+                : {},
+            ]"
             class="btn-page"
             v-for="page_index in pageTotal"
             :key="page_index"
@@ -197,6 +215,7 @@ import Footer from "@/components/Footer.vue";
 import Card from "@/components/Card.vue";
 import { Splide, SplideSlide } from "@splidejs/vue-splide";
 import { mapGetters, mapActions } from "vuex";
+import { jwtDecrypt } from "../shared/jwtHelper";
 export default {
   name: "Stores",
   components: {
@@ -208,6 +227,11 @@ export default {
   },
   data() {
     return {
+      sortDefault:true,
+      sortLatest: false,
+      sortOldest: false,
+      sortExpensive: false,
+      sortCheap: false,
       current: 1,
       paginate: 20,
       options: {
@@ -258,7 +282,7 @@ export default {
       this.$store.dispatch("addToWishList", product);
     },
     deleteWishList(product) {
-       this.$store.dispatch("deleteFromWishlist", product);
+      this.$store.dispatch("deleteFromWishlist", product);
     },
     changeImage(id) {
       for (let index = 0; index < this.slotImages.length; index++) {
@@ -272,21 +296,21 @@ export default {
     numberOfProductByBrand(name) {
       try {
         var brandCount = this.getAllproducts.filter((product) =>
-        product.brand.brand_name.toLowerCase().includes(name.toLowerCase())
-      );
-      return brandCount.length;
+          product.brand.brand_name.toLowerCase().includes(name.toLowerCase())
+        );
+        return brandCount.length;
       } catch (error) {
-        this.$router.push("/stores")
+        this.$router.push("/stores");
       }
     },
     numberOfProductByCategory(category) {
       try {
         var categoryCount = this.getAllproducts.filter((product) =>
-        product.category.category_name.includes(category)
-      );
-      return categoryCount.length;
+          product.category.category_name.includes(category)
+        );
+        return categoryCount.length;
       } catch (error) {
-        this.$router.push("/stores")
+        this.$router.push("/stores");
       }
     },
     setPaginate(i) {
@@ -301,8 +325,43 @@ export default {
     },
     updateCurrent(i) {
       this.current = i;
-      let clothes =  document.querySelector("#clothes");
-      window.scrollTo(0,clothes.offsetTop);
+      let clothes = document.querySelector("#clothes");
+      window.scrollTo(0, clothes.offsetTop);
+    },
+    toggleSortDefault() {
+      this.sortExpensive = false;
+      this.sortCheap = false;
+      this.sortOldest = false;
+      this.sortLatest = false;
+      this.sortDefault = true;
+    },
+    toggleSortLatestDate() {
+      this.sortDefault = false;
+      this.sortExpensive = false;
+      this.sortCheap = false;
+      this.sortOldest = false;
+      this.sortLatest = true;
+    },
+    toggleSortOldestDate() {
+      this.sortDefault = false;
+      this.sortExpensive = false;
+      this.sortCheap = false;
+      this.sortLatest = false;
+      this.sortOldest = true;
+    },
+    toggleSortExpensive() {
+      this.sortDefault = false;
+      this.sortCheap = false;
+      this.sortLatest = false;
+      this.sortOldest = false;
+      this.sortExpensive = true;
+    },
+    toggleSortCheap() {
+      this.sortDefault = false;
+      this.sortLatest = false;
+      this.sortExpensive = false;
+      this.sortOldest = false;
+      this.sortCheap = true;
     },
   },
   mounted() {
@@ -334,10 +393,13 @@ export default {
   ]),
   computed: {
     currentUser() {
-      return this.$store.state.auth.user;
+      if (localStorage.getItem("user")) {
+        return jwtDecrypt(JSON.parse(localStorage.getItem("user")).token);
+      }
+      return false;
     },
     isAdmin() {
-      if (this.currentUser && this.currentUser["role"] == 1) {
+      if (this.currentUser && this.currentUser.role_id == 1) {
         return true;
       }
       return false;
@@ -356,19 +418,86 @@ export default {
     },
     queryProducts() {
       this.current = 1;
-      return this.products.filter((product) => {
-        return (
-          product != this.handleDelete &&
-          product.brand.brand_name
-            .toLowerCase()
-            .includes(this.selectedBrand.toLowerCase()) &&
-          product.product_name.toLowerCase().includes(this.searchInput) &&
-          product.category.category_name.includes(this.selectedCategory)
-        );
-      });
+      if (this.sortDefault) {
+        return this.products
+          .filter((product) => {
+            return (
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          })
+      }
+      if (this.sortLatest) {
+        return this.products
+          .filter((product) => {
+            return (
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          })
+          .sort((a, b) => {
+            return new Date(b.release_date) - new Date(a.release_date);
+          });
+      }
+      if (this.sortOldest) {
+        return this.products
+          .filter((product) => {
+            return (
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          })
+          .sort((a, b) => {
+            return new Date(a.release_date) - new Date(b.release_date);
+          });
+      }
+      if (this.sortExpensive) {
+        return this.products
+          .filter((product) => {
+            return (
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          })
+          .sort((a, b) => {
+            return parseFloat(b.price) - parseFloat(a.price);
+          });
+      }
+      if (this.sortCheap) {
+        return this.products
+          .filter((product) => {
+            return (
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          })
+          .sort((a, b) => {
+            return parseFloat(a.price) - parseFloat(b.price);
+          });
+      }
     },
     pageTotal() {
-      return Math.ceil((this.queryProducts.length) / this.paginate);
+      return Math.ceil(this.queryProducts.length / this.paginate);
     },
   },
   created() {
@@ -648,6 +777,7 @@ export default {
   display: flex;
   align-items: center;
   justify-self: end;
+  /* position: relative; */
 }
 
 .search input {
@@ -739,12 +869,12 @@ select {
   font-weight: 700;
   color: #eb435f;
 }
-#pagination{
-margin-top: 5.8rem;
-display: flex;
-justify-content: center;
+#pagination {
+  margin-top: 5.8rem;
+  display: flex;
+  justify-content: center;
 }
-.btn-page{
+.btn-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -758,7 +888,7 @@ justify-content: center;
   transition: 00.15s all ease-in-out;
   box-shadow: inset 0 0 0 1px #333;
 }
-.btn-page:hover{
+.btn-page:hover {
   background-color: #333;
   color: #fff;
 }
@@ -843,7 +973,7 @@ justify-content: center;
 /* below 577px */
 @media (max-width: 36em) {
   .search input {
-    max-width: 30rem;
+    max-width: 28rem;
   }
   .image-slide-show-mb {
     display: inline;
@@ -919,9 +1049,6 @@ justify-content: center;
   .add-product {
     display: none;
   }
-  /* .search input {
-    width: auto;
-  } */
 }
 
 /* below 375px */
@@ -940,5 +1067,59 @@ justify-content: center;
   .not-found {
     text-align: center;
   }
+}
+.filter-icon {
+  position: relative;
+}
+.filter-more {
+  margin-left: 0.6rem;
+  background-color: #333;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: 0.15s all ease-in-out;
+}
+.filter-more:hover {
+  background-color: #555;
+}
+.filter-more:hover + .filter-hover {
+  display: block;
+}
+.filter-more .fa-filter {
+  color: #fff;
+}
+.filter-hover {
+  display: none;
+  margin-top: 0.2rem;
+  right: 0%;
+  z-index: 10;
+  background-color: #fff;
+  position: absolute;
+  padding: 1.6rem;
+  width: 16rem;
+}
+.filter-hover:hover {
+  display: block;
+}
+.filter-hover ul {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+.filter-hover ul li {
+  text-align: center;
+  font-size: 1.4rem;
+  border-bottom: 1px solid rgb(225, 225, 225);
+  padding-bottom: 1.6rem;
+  transition: 0.15s all ease-in-out;
+  cursor: pointer;
+}
+.filter-hover ul li:hover {
+  color: #333;
+}
+.filter-hover ul li:last-child {
+  border-bottom: none;
 }
 </style>

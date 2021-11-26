@@ -168,7 +168,7 @@
               <div class="card" v-if="categories[0].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getShirts.reverse().slice(0, 3)"
+                    v-for="slide in getShirts.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -186,7 +186,7 @@
               <div class="card" v-if="categories[1].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getSweaters.reverse().slice(0, 3)"
+                    v-for="slide in getSweaters.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -204,7 +204,7 @@
               <div class="card" v-if="categories[2].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getJackets.reverse().slice(0, 3)"
+                    v-for="slide in getJackets.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -222,7 +222,7 @@
               <div class="card" v-if="categories[3].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getCoats.reverse().slice(0, 3)"
+                    v-for="slide in getCoats.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -240,7 +240,7 @@
               <div class="card" v-if="categories[4].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getPants.reverse().slice(0, 3)"
+                    v-for="slide in getPants.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -258,7 +258,7 @@
               <div class="card" v-if="categories[5].selected">
                 <splide :options="options">
                   <splide-slide
-                    v-for="slide in getDresses.reverse().slice(0, 3)"
+                    v-for="slide in getDresses.slice(0, 3)"
                     :key="slide.product_id"
                   >
                     <img
@@ -687,6 +687,9 @@ export default {
   computed: mapGetters(["getProducts"]),
   computed: {
     getAllproducts() {
+      this.$store.getters.getProducts.sort( ( a, b) => {
+            return new Date(b.release_date) - new Date(a.release_date);
+        });
       return this.$store.getters.getProducts;
     },
     getShirts() {

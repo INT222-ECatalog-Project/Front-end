@@ -8,7 +8,7 @@
         <router-link to="/stores">Stores</router-link>
         <div class="dropdown" v-if="isAdmin || isDeputyAdmin">
           <ul>
-            <li>
+            <li :style="{cursor:'pointer'}">
               Management<i class="fas fa-angle-down"></i>
               <ul>
                 <li v-if="isAdmin">

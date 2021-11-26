@@ -90,6 +90,15 @@
                 name="username"
                 placeholder="Smith123"
                 v-model="form.username"
+                :style="[
+                  isEdit
+                    ? {
+                        backgroundColor: '#ebebeb',
+                        color: '#6d6d6d',
+                        border: '1px solid #cdcdcd',
+                      }
+                    : {},
+                ]"
               />
             </div>
             <div class="email">
@@ -106,8 +115,14 @@
               />
             </div>
             <div class="old-password" v-if="isEdit">
-              <input type="checkbox" id="useOldPass" name="useOldPass" v-model="useFormerPassword" checked>
-              <label for="useOldPass">Use former password</label><br>
+              <input
+                type="checkbox"
+                id="useOldPass"
+                name="useOldPass"
+                v-model="useFormerPassword"
+                checked
+              />
+              <label for="useOldPass">Use former password</label><br />
             </div>
             <div class="password" v-if="!useFormerPassword || !isEdit">
               <label for="password"
@@ -130,7 +145,7 @@
                 :type="type"
                 id="password"
                 name="password"
-                placeholder="*********"
+                placeholder="Enter your password"
                 v-model="form.password"
                 :style="[
                   form.password.length <= 0
@@ -159,33 +174,47 @@
                 </div>
               </div>
             </div>
-            <div class="password">
-              <label for="password-admin"
-                >Admin password
-                <span v-if="!editPasswordIsValid">*required</span>
-              </label>
-              <input
-                :type="type"
-                id="password-admin"
-                name="password-admin"
-                placeholder="*********"
-                v-model="form.adminPassword"
-              />
-              <div class="btn-eye" @click="togglePassword">
-                <div
-                  :style="[
-                    type === 'text' ? { display: 'none' } : { display: 'flex' },
-                  ]"
-                >
-                  <i class="fas fa-eye icon"></i>
-                </div>
-                <div
-                  :style="[
-                    type !== 'text' ? { display: 'none' } : { display: 'flex' },
-                  ]"
-                >
-                  <i class="fas fa-eye-slash icon"></i>
-                </div>
+            <div class="warnings">
+              <div class="warning-header">
+                Password must:
+              </div>
+              <div
+                class="warning"
+                :style="[
+                  isPasswordLenght ? { color: '#35e08e' } : { color: '#333' },
+                ]"
+              >
+                Be at least 8 characters.
+              </div>
+              <div
+                class="warning"
+                :style="[
+                  isPasswordIncludeUppercase && isPasswordIncludeLowercase
+                    ? { color: '#35e08e' }
+                    : { color: '#333' },
+                ]"
+              >
+                Contain both UPPERCASE and lowercase characters.
+              </div>
+              <div
+                class="warning"
+                :style="[
+                  isPasswordIncludeNumber
+                    ? { color: '#35e08e' }
+                    : { color: '#333' },
+                ]"
+              >
+                Contain numbers.
+              </div>
+              <div
+                class="warning"
+                :style="[
+                  isPasswordIncludeSpecial
+                    ? { color: '#35e08e' }
+                    : { color: '#333' },
+                ]"
+              >
+                Contain special characters ! @ # $ % ^ &amp; * ( ) _.
               </div>
             </div>
             <div class="role">
@@ -207,9 +236,9 @@
               class="btn btn--full"
               v-if="isEdit == false"
               type="submit"
-              @click="createAccount"
+              @click="toggleToPrompt"
               :style="[
-                editFormIsValid
+                editFormIsValidFirst
                   ? {}
                   : {
                       backgroundColor: '#707070',
@@ -224,9 +253,9 @@
               class="btn btn--full edit-btn"
               v-if="isEdit"
               type="submit"
-              @click="editAccount"
+              @click="toggleToPrompt"
               :style="[
-                editFormIsValid
+                editFormIsValidFirst
                   ? {}
                   : {
                       backgroundColor: '#707070',
@@ -308,6 +337,7 @@
             v-for="(user, index) in getAllUsers"
             :key="user.account_id"
             :user="user"
+            :accountId="account_id"
             @deleteAccountById="handleDelete"
             @editAccountById="handleEdit"
             v-show="setPaginate(index)"
@@ -320,6 +350,7 @@
               :key="user.account_id"
               v-show="setPaginate(index)"
             >
+              <!-- :style="[ account_id == user.account_id ? {backgroundColor:'#ebebeb'}:{}]" -->
               <tr>
                 <td>{{ index + 1 }}</td>
                 <td>{{ user.first_name }}</td>
@@ -333,16 +364,31 @@
                   <div
                     class="delete"
                     @click="deleteAccount(user.account_id)"
-                    :style="{ display: 'inline' }"
+                    :style="[
+                      account_id == user.account_id
+                        ? { display: 'none' }
+                        : { display: 'inline' },
+                    ]"
                   >
                     Delete
+                  </div>
+                  <div
+                    v-if="account_id == user.account_id"
+                    class="delete"
+                    :style="{ display: 'inline', textDecoration: 'none' }"
+                  >
+                    -
                   </div>
 
                   <div
                     v-if="user.role_id != 3"
                     class="edit"
                     @click="toggleEditAccount(user)"
-                    :style="{ display: 'inline' }"
+                    :style="[
+                      account_id == user.account_id
+                        ? { display: 'none' }
+                        : { display: 'inline' },
+                    ]"
                   >
                     | Edit
                   </div>
@@ -376,6 +422,14 @@
         :isTrue="false"
       />
     </div>
+    <div class="modal" v-if="showPrompt">
+      <Prompt
+        :username="form.username"
+        :role="form.role"
+        @closePrompt="showPrompt = false"
+        @sendConfirmPassword="startAction"
+      />
+    </div>
     <div v-if="successToAdd" id="noti">
       <Notification> {{ successData }} is completed </Notification>
     </div>
@@ -389,6 +443,7 @@ import Footer from "@/components/Footer.vue";
 import List from "@/components/List.vue";
 import Table from "@/components/Table.vue";
 import Popup from "@/components/Popup.vue";
+import Prompt from "@/components/Prompt.vue";
 import Notification from "@/components/Notification.vue";
 import { jwtDecrypt } from "../shared/jwtHelper";
 import { mapGetters, mapActions } from "vuex";
@@ -401,10 +456,12 @@ export default {
     Table,
     Popup,
     Notification,
+    Prompt,
   },
   data() {
     return {
-      useFormerPassword:true,
+      showPrompt: false,
+      useFormerPassword: true,
       successData: "",
       successToAdd: false,
       failedCreate: false,
@@ -437,6 +494,18 @@ export default {
   },
   methods: {
     ...mapActions(["getAccountsToSite", "getRolesToSite"]),
+    startAction(conPass) {
+      this.form.adminPassword = conPass;
+      if (this.isEdit) {
+        console.log("In");
+        this.editAccount();
+      } else {
+        this.createAccount();
+      }
+    },
+    toggleToPrompt() {
+      this.showPrompt = true;
+    },
     togglePassword() {
       if (this.type === "password") {
         this.type = "text";
@@ -478,6 +547,7 @@ export default {
       window.scrollTo(0, 0);
       this.isEdit = !this.isEdit;
       if (this.isEdit == true) {
+        document.getElementById("username").readOnly = true;
         this.form.id = editAccount.account_id;
         this.form.name = editAccount.first_name;
         this.form.surname = editAccount.last_name;
@@ -485,6 +555,7 @@ export default {
         this.form.email = editAccount.email;
         this.form.role = editAccount.role_id;
       } else {
+        document.getElementById("username").readOnly = false;
         this.form.id = "";
         this.form.name = "";
         this.form.surname = "";
@@ -504,7 +575,7 @@ export default {
       if (this.useFormerPassword) {
         this.form.password = "";
       }
-      if (this.editFormIsValid && this.checkUniqueUsername != true) {
+      if (this.editFormIsValidLast && this.checkUniqueUsername != true) {
         const index = this.getAllUsers.findIndex(
           (account) => account.account_id == this.form.id
         );
@@ -553,6 +624,7 @@ export default {
           this.form.password = "";
           this.form.adminPassword = "";
           this.form.role = "";
+          this.showPrompt = false;
           setTimeout(
             () => ((this.successToAdd = false), (this.successData = "")),
             2500
@@ -562,10 +634,11 @@ export default {
         this.form.password = "";
         this.form.adminPassword = "";
         this.failedCreate = true;
+        this.showPrompt = false;
       }
     },
     createAccount() {
-      if (this.editFormIsValid && this.checkUniqueUsername != true) {
+      if (this.editFormIsValidLast && this.checkUniqueUsername != true) {
         const newAccount = {
           first_name: this.form.name,
           last_name: this.form.surname,
@@ -611,6 +684,7 @@ export default {
         this.form.password = "";
         this.form.role = "";
         this.form.adminPassword = "";
+        this.showPrompt = false;
         setTimeout(
           () => ((this.successToAdd = false), (this.successData = "")),
           2500
@@ -619,6 +693,7 @@ export default {
         this.form.password = "";
         this.form.adminPassword = "";
         this.failedCreate = true;
+        this.showPrompt = false;
       }
     },
     // in list compo
@@ -655,7 +730,7 @@ export default {
       if (this.searchInput && this.selectedRole) {
         return this.$store.getters.getAccounts.filter((user) => {
           return (
-            user.account_id != this.account_id &&
+            // user.account_id != this.account_id &&
             user.role_id == this.selectedRole &&
             user.username.toLowerCase().includes(this.searchInput)
           );
@@ -675,9 +750,10 @@ export default {
           );
         });
       }
-      return this.$store.getters.getAccounts.filter((user) => {
-        return user.account_id != this.account_id;
-      });
+      // return this.$store.getters.getAccounts.filter((user) => {
+      //   return user.account_id != this.account_id;
+      // });
+      return this.$store.getters.getAccounts;
     },
     getAllRoles() {
       return this.$store.getters.getRoles;
@@ -716,10 +792,25 @@ export default {
       if (this.useFormerPassword) {
         return true;
       }
-      return !!this.form.password && this.form.password.length >= 8;
+      return !!this.form.password;
     },
     editAdminPasswordIsValid() {
-      return !!this.form.adminPassword && this.form.adminPassword.length >= 8;
+      return !!this.form.adminPassword;
+    },
+    isPasswordLenght() {
+      return this.form.password.length >= 8;
+    },
+    isPasswordIncludeUppercase() {
+      return /[A-Z]/.test(this.form.password);
+    },
+    isPasswordIncludeLowercase() {
+      return /[a-z]/.test(this.form.password);
+    },
+    isPasswordIncludeNumber() {
+      return /[0-9]/.test(this.form.password);
+    },
+    isPasswordIncludeSpecial() {
+      return /[_#?!@$%^&*-]/.test(this.form.password);
     },
     editRoleIsValid() {
       return !!this.form.role;
@@ -745,7 +836,24 @@ export default {
       }
       return false;
     },
-    editFormIsValid() {
+    editFormIsValidFirst() {
+      return (
+        this.editPasswordIsValid &&
+        this.editEmailIsValid &&
+        this.editUsernameIsValid &&
+        this.editSurnameIsValid &&
+        this.editNameIsValid &&
+        this.noSpecialChars &&
+        this.editRoleIsValid &&
+        this.isPasswordLenght &&
+        this.isPasswordLenght &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeSpecial
+      );
+    },
+    editFormIsValidLast() {
       return (
         this.editPasswordIsValid &&
         this.editEmailIsValid &&
@@ -1112,12 +1220,30 @@ label span {
   gap: 1.2rem;
   margin: 1.4rem 0 2.4rem 0;
 }
-.old-password label{
+.old-password label {
   display: inline;
 }
 input[type="checkbox"] {
   width: auto;
   height: auto;
   margin-bottom: 1rem;
+}
+.warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+  background-color: rgb(245, 245, 245);
+  padding: 1.2rem 1.4rem;
+  border-radius: 0.6rem;
+  margin-bottom: 3.6rem;
+}
+.warning-header {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.warning {
+  font-size: 1.3rem;
+  padding-left: 1rem;
 }
 </style>
