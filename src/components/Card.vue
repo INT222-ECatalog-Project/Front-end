@@ -24,10 +24,19 @@
         @click="showDetails(product)"
       />
     </div>
-    <div class="product-purchase">
+    <div class="product-purchase" @click="toggleWishList"                   
+                  :style="[
+                    isMember
+                      ? {}
+                      : {
+                          backgroundColor: '#555',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
+                  ]">
       <div class="add-to-cart">
-        Add to cart
-        <i class="fas fa-cart-plus"></i>
+        Add to wishlist
+        <i class="fas fa-plus"></i>
       </div>
     </div>
     <div class="product-info" v-if="$route.name != 'Profile'">

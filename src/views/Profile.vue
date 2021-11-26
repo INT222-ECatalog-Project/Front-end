@@ -163,16 +163,16 @@
                 </label>
                 <div class="show-hide-passwod">
                   <input
-                    :type="type"
+                    :type="typeForCurPass"
                     name="password"
                     id="currentPassword"
                     placeholder="Enter current password"
                     v-model="form.currentPassword"
                   />
-                  <div class="btn-eye" @click="togglePassword">
+                  <div class="btn-eye" @click="togglePasswordCur">
                     <div
                       :style="[
-                        type === 'text'
+                        typeForCurPass === 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -181,7 +181,7 @@
                     </div>
                     <div
                       :style="[
-                        type !== 'text'
+                        typeForCurPass !== 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -195,19 +195,46 @@
                 <label for="newPassword"
                   >New Password
                   <span v-if="!newPasswordIsValid">*required</span>
+                  <span
+                    :style="{ color: '#FFD700' }"
+                    v-if="
+                      form.newPassword.length >= 8 &&
+                        form.newPassword.length < 10 &&
+                        checkStronPassword
+                    "
+                    >good</span
+                  >
+                  <span
+                    :style="{ color: '#32CD32' }"
+                    v-if="checkStronPassword && form.newPassword.length >= 10"
+                    >excellent</span
+                  >
                 </label>
                 <div class="show-hide-passwod">
                   <input
-                    :type="type"
+                    :type="typeForNewPass"
                     name="password"
                     id="newPassword"
                     placeholder="Enter new password"
                     v-model="form.newPassword"
+                    :style="[
+                      form.newPassword.length <= 0
+                        ? { backgroundColor: '' }
+                        : !checkStronPassword
+                        ? { backgroundColor: '#f9cede' }
+                        : form.newPassword.length >= 8 &&
+                          form.newPassword.length < 10 &&
+                          checkStronPassword
+                        ? { backgroundColor: '#fff7cc' }
+                        : checkStronPassword
+                        ? { backgroundColor: '#d6f5d6' }
+                        : {},
+                    ]"
                   />
-                  <div class="btn-eye" @click="togglePassword">
+                  <div class="btn-eye" @click="togglePasswordNew">
                     <div
                       :style="[
-                        type === 'text'
+                        typeForNewPass === 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -216,34 +243,82 @@
                     </div>
                     <div
                       :style="[
-                        type !== 'text'
+                        typeForNewPass !== 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
                     >
                       <i class="fas fa-eye-slash icon"></i>
                     </div>
+                  </div>
+                </div>
+                <div class="warnings">
+                  <div class="warning-header">
+                    Password must:
+                  </div>
+                  <div
+                    class="warning"
+                    :style="[
+                      isPasswordLenght
+                        ? { color: '#35e08e' }
+                        : { color: '#333' },
+                    ]"
+                  >
+                    Be at least 8 characters.
+                  </div>
+                  <div
+                    class="warning"
+                    :style="[
+                      isPasswordIncludeUppercase && isPasswordIncludeLowercase
+                        ? { color: '#35e08e' }
+                        : { color: '#333' },
+                    ]"
+                  >
+                    Contain both UPPERCASE and lowercase characters.
+                  </div>
+                  <div
+                    class="warning"
+                    :style="[
+                      isPasswordIncludeNumber
+                        ? { color: '#35e08e' }
+                        : { color: '#333' },
+                    ]"
+                  >
+                    Contain numbers.
+                  </div>
+                  <div
+                    class="warning"
+                    :style="[
+                      isPasswordIncludeSpecial
+                        ? { color: '#35e08e' }
+                        : { color: '#333' },
+                    ]"
+                  >
+                    Contain special characters ! @ # $ % ^ &amp; * ( ) _.
                   </div>
                 </div>
               </div>
               <div class="input-password">
                 <label for="conNewPassword"
                   >Confirm New Password
-                  <span v-if="!confirmNewPasswordIsValid && isPasswordMatch">*required</span>
-                  <span v-if="!isPasswordMatch">Password do NOT match</span>
+                  <span v-if="!confirmNewPasswordIsValid">*required</span>
+                  <span
+                    v-if="!isPasswordMatch && form.confirmNewPassword.length"
+                    >Password do NOT match</span
+                  >
                 </label>
                 <div class="show-hide-passwod">
                   <input
-                    :type="type"
+                    :type="typeForConNewPass"
                     name="password"
                     id="conNewPassword"
                     placeholder="Enter new password"
                     v-model="form.confirmNewPassword"
                   />
-                  <div class="btn-eye" @click="togglePassword">
+                  <div class="btn-eye" @click="togglePasswordConNew">
                     <div
                       :style="[
-                        type === 'text'
+                        typeForConNewPass === 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -252,7 +327,7 @@
                     </div>
                     <div
                       :style="[
-                        type !== 'text'
+                        typeForConNewPass !== 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -262,16 +337,18 @@
                   </div>
                 </div>
               </div>
-              <div class="btn btn--ghost"
-                                :style="[
-                    resetPasswordIsValid
-                      ? {}
-                      : {
-                          filter: 'grayscale(1)',
-                          cursor: 'not-allowed',
-                          pointerEvents: 'none',
-                        },
-                  ]"
+              <div
+                class="btn btn--ghost"
+                @click="resetAccountPassword"
+                :style="[
+                  resetPasswordIsValid
+                    ? {}
+                    : {
+                        filter: 'grayscale(1)',
+                        cursor: 'not-allowed',
+                        pointerEvents: 'none',
+                      },
+                ]"
               >
                 Update Password
               </div>
@@ -389,16 +466,16 @@
                 </label>
                 <div class="show-hide-passwod">
                   <input
-                    :type="type"
+                    :type="typeForEditConPass"
                     name="password"
                     id="password"
-                    placeholder="*******"
+                    placeholder="Enter your password"
                     v-model="form.password"
                   />
-                  <div class="btn-eye" @click="togglePassword">
+                  <div class="btn-eye" @click="toggleEditPassword">
                     <div
                       :style="[
-                        type === 'text'
+                        typeForEditConPass === 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -407,7 +484,7 @@
                     </div>
                     <div
                       :style="[
-                        type !== 'text'
+                        typeForEditConPass !== 'text'
                           ? { display: 'none' }
                           : { display: 'flex' },
                       ]"
@@ -454,6 +531,13 @@
         :isTrue="false"
       />
     </div>
+    <div class="modal" v-if="invalidPassword">
+      <Popup
+        @closePopup="invalidPassword = false"
+        :text="invalidPasswordText"
+        :isTrue="false"
+      />
+    </div>
     <Socials class="socials"></Socials>
     <Footer class="footer"></Footer>
   </div>
@@ -476,6 +560,8 @@ export default {
   },
   data() {
     return {
+      invalidPassword: false,
+      invalidPasswordText: "Password is not correct",
       resetPassword: false,
       allUsername: "",
       failedToEdit: false,
@@ -499,12 +585,15 @@ export default {
         edit_username: "",
         edit_email: "",
         password: "",
-        currentPassword:"",
-        newPassword:"",
-        confirmNewPassword:""
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
       },
       isEdit: false,
-      type: "password",
+      typeForEditConPass: "password",
+      typeForCurPass: "password",
+      typeForNewPass: "password",
+      typeForConNewPass: "password",
     };
   },
   methods: {
@@ -517,11 +606,32 @@ export default {
       this.form.edit_email = this.email;
       window.scrollTo(0, 0);
     },
-    togglePassword() {
-      if (this.type === "password") {
-        this.type = "text";
-      } else if (this.type === "text") {
-        this.type = "password";
+    toggleEditPassword() {
+      if (this.typeForEditConPass === "password") {
+        this.typeForEditConPass = "text";
+      } else if (this.typeForEditConPass === "text") {
+        this.typeForEditConPass = "password";
+      }
+    },
+    togglePasswordCur() {
+      if (this.typeForCurPass === "password") {
+        this.typeForCurPass = "text";
+      } else if (this.typeForCurPass === "text") {
+        this.typeForCurPass = "password";
+      }
+    },
+    togglePasswordNew() {
+      if (this.typeForNewPass === "password") {
+        this.typeForNewPass = "text";
+      } else if (this.typeForNewPass === "text") {
+        this.typeForNewPass = "password";
+      }
+    },
+    togglePasswordConNew() {
+      if (this.typeForConNewPass === "password") {
+        this.typeForConNewPass = "text";
+      } else if (this.typeForConNewPass === "text") {
+        this.typeForConNewPass = "password";
       }
     },
     editProfile() {
@@ -562,6 +672,38 @@ export default {
         this.form.password = "";
       } else {
         this.invalidUsername = true;
+      }
+    },
+    resetAccountPassword() {
+      if (this.resetPasswordIsValid) {
+        const newPassword = {
+          new_password: this.form.newPassword,
+          old_password: this.form.currentPassword,
+        };
+        let user = JSON.parse(localStorage.getItem("user"));
+        const jsonNewPassword = JSON.stringify(newPassword, {
+          type: "application/json",
+        });
+        fetch(this.urlProfile + "/editPassword", {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json",
+            Authorization: "Bearer " + user.token,
+          },
+          body: jsonNewPassword,
+        })
+          .then((res) => {
+            if (res.status !== 200) {
+              this.invalidPassword = true;
+            } else {
+              this.$router.go("/profile");
+            }
+          })
+          .catch((err) => console.log(err));
+        this.isEdit = false;
+        this.form.currentPassword = "";
+        this.form.newPassword = "";
+        this.form.confirmNewPassword = "";
       }
     },
     deleteAccount() {
@@ -645,25 +787,56 @@ export default {
       );
     },
     currentPasswordIsValid() {
-      return !!this.form.currentPassword && this.form.currentPassword.length >= 8;
+      return (
+        !!this.form.currentPassword && this.form.currentPassword.length >= 8
+      );
     },
     newPasswordIsValid() {
-      return !!this.form.newPassword && this.form.newPassword.length >= 8;
+      return !!this.form.newPassword;
+    },
+    isPasswordLenght() {
+      return this.form.newPassword.length >= 8;
+    },
+    isPasswordIncludeUppercase() {
+      return /[A-Z]/.test(this.form.newPassword);
+    },
+    isPasswordIncludeLowercase() {
+      return /[a-z]/.test(this.form.newPassword);
+    },
+    isPasswordIncludeNumber() {
+      return /[0-9]/.test(this.form.newPassword);
+    },
+    isPasswordIncludeSpecial() {
+      return /[_#?!@$%^&*-]/.test(this.form.newPassword);
     },
     confirmNewPasswordIsValid() {
-      return !!this.form.confirmNewPassword && this.form.confirmNewPassword >= 8;
+      return !!this.form.confirmNewPassword;
     },
     isPasswordMatch() {
       return this.form.newPassword == this.form.confirmNewPassword;
+    },
+    checkStronPassword() {
+      return (
+        this.isPasswordIncludeSpecial &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordLenght
+      );
     },
     resetPasswordIsValid() {
       return (
         this.currentPasswordIsValid &&
         this.newPasswordIsValid &&
         this.confirmNewPasswordIsValid &&
-        this.isPasswordMatch
+        this.isPasswordMatch &&
+        this.isPasswordIncludeSpecial &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordLenght
       );
-    }
+    },
   },
   async mounted() {
     await this.getProfileToSite();
@@ -1105,5 +1278,28 @@ label span {
 }
 .reset-btn {
   margin-top: 1.2rem;
+}
+.warnings {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+  background-color: rgb(245, 245, 245);
+  padding: 1.2rem 1.4rem;
+  border-radius: 0.6rem;
+}
+.warning-header {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.warning {
+  font-size: 1.3rem;
+  padding-left: 1rem;
+}
+#username {
+  background-color: #ebebeb;
+  color: #6d6d6d;
+  border: 1px solid #cdcdcd;
 }
 </style>

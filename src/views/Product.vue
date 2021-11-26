@@ -48,9 +48,18 @@
             <div class="prod_desc">
               {{ product.product_desc }}
             </div>
-            <a href="#" class="btn btn--full"
-              >Add to cart <i class="icon fas fa-cart-plus"></i
-            ></a>
+            <div class="btn btn--full" @click="toggleWishList"
+                              :style="[
+                    isMember
+                      ? {}
+                      : {
+                          backgroundColor: '#555',
+                          cursor: 'not-allowed',
+                          pointerEvents: 'none',
+                        },
+                  ]"
+              >Add to wishlist <i class="icon fas fa-plus"></i
+            ></div>
             <!-- v-if="isMember" -->
             <div href="#" class="btn btn--ghost share-btn" @click="toggleShare">
               SHARE <i class="icon fas fa-share-alt"></i>

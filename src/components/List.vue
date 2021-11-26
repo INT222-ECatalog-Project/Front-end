@@ -35,7 +35,7 @@
       <div class="username">
         <i class="icon fas fa-user"></i> <span>{{ user.username }}</span>
       </div>
-      <div class="action-btn">
+      <div class="action-btn" v-if="accountId != user.account_id">
         <button
           class="btn btn-edit"
           type="submit"
@@ -55,7 +55,7 @@
 <script>
 export default {
   name: "List",
-  props: ["user"],
+  props: ["user", "accountId"],
   methods: {
     deleteAccount(id) {
       if (confirm("Do you really want to delete? 😲")) {
@@ -64,7 +64,7 @@ export default {
       }
     },
     editAccount() {
-      this.$emit("editAccountById",this.user);
+      this.$emit("editAccountById", this.user);
     },
   },
 };

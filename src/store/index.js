@@ -190,7 +190,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -216,7 +216,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -234,7 +234,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }else{
           router.go();
         }
@@ -251,7 +251,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -272,7 +272,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -315,7 +315,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -349,7 +349,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -383,7 +383,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -415,7 +415,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -477,7 +477,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         if(res.status == 403){
           alert("Invalid admin password")
@@ -496,7 +496,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -521,7 +521,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -573,7 +573,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
@@ -592,7 +592,7 @@ export default createStore({
       .then((res) => {
         if (res.status == 400) {
           this.dispatch("auth/logout")
-          router.push("/sign-up");
+          router.replace("/sign-up");
         }
         return res.json()
       })
