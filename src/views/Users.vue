@@ -127,17 +127,19 @@
             <div class="password" v-if="!useFormerPassword || !isEdit">
               <label for="password"
                 >Password
-                <span v-if="!editPasswordIsValid"
-                  >*required at least 8 chars</span
-                >
+                <span v-if="!isPasswordValid">*required</span>
                 <span
                   :style="{ color: '#FFD700' }"
-                  v-if="form.password.length >= 8 && form.password.length < 10"
+                  v-if="
+                    form.password.length >= 8 &&
+                      form.password.length < 10 &&
+                      checkStronPassword
+                  "
                   >good</span
                 >
                 <span
                   :style="{ color: '#32CD32' }"
-                  v-if="form.password.length >= 10"
+                  v-if="checkStronPassword && form.password.length >= 10"
                   >excellent</span
                 >
               </label>
@@ -150,11 +152,15 @@
                 :style="[
                   form.password.length <= 0
                     ? { backgroundColor: '' }
-                    : form.password.length < 8
+                    : !checkStronPassword
                     ? { backgroundColor: '#f9cede' }
-                    : form.password.length >= 8 && form.password.length < 10
+                    : form.password.length >= 8 &&
+                      form.password.length < 10 &&
+                      checkStronPassword
                     ? { backgroundColor: '#fff7cc' }
-                    : { backgroundColor: '#d6f5d6' },
+                    : checkStronPassword
+                    ? { backgroundColor: '#d6f5d6' }
+                    : {},
                 ]"
               />
               <div class="btn-eye" @click="togglePassword">
@@ -174,7 +180,10 @@
                 </div>
               </div>
             </div>
-            <div class="warnings">
+            <div
+              class="warnings"
+              v-if="isEdit == false || useFormerPassword == false"
+            >
               <div class="warning-header">
                 Password must:
               </div>
@@ -214,7 +223,7 @@
                     : { color: '#333' },
                 ]"
               >
-                Contain special characters ! @ # $ % ^ &amp; * ( ) _.
+                Contain special characters ! @ # $ % ^ &amp; * _.
               </div>
             </div>
             <div class="role">
@@ -497,7 +506,6 @@ export default {
     startAction(conPass) {
       this.form.adminPassword = conPass;
       if (this.isEdit) {
-        console.log("In");
         this.editAccount();
       } else {
         this.createAccount();
@@ -788,6 +796,9 @@ export default {
         )
       );
     },
+    isPasswordValid() {
+      return !!this.form.password;
+    },
     editPasswordIsValid() {
       if (this.useFormerPassword) {
         return true;
@@ -811,6 +822,15 @@ export default {
     },
     isPasswordIncludeSpecial() {
       return /[_#?!@$%^&*-]/.test(this.form.password);
+    },
+    checkStronPassword() {
+      return (
+        this.isPasswordIncludeSpecial &&
+        this.isPasswordIncludeNumber &&
+        this.isPasswordIncludeLowercase &&
+        this.isPasswordIncludeUppercase &&
+        this.isPasswordLenght
+      );
     },
     editRoleIsValid() {
       return !!this.form.role;
@@ -837,6 +857,17 @@ export default {
       return false;
     },
     editFormIsValidFirst() {
+      if (this.useFormerPassword) {
+        return (
+          this.editPasswordIsValid &&
+          this.editEmailIsValid &&
+          this.editUsernameIsValid &&
+          this.editSurnameIsValid &&
+          this.editNameIsValid &&
+          this.noSpecialChars &&
+          this.editRoleIsValid
+        );
+      }
       return (
         this.editPasswordIsValid &&
         this.editEmailIsValid &&

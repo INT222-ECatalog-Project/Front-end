@@ -522,36 +522,6 @@ export default {
       cursorMember: 1,
       cursorCategory: 1,
       cursorTestimonial: 0,
-      slides1: [
-        require("../../src/assets/images/men/men3.jpg"),
-        require("../../src/assets/images/men/men1.jpg"),
-        require("../../src/assets/images/men/men2.jpg"),
-      ],
-      slides2: [
-        require("../../src/assets/images/women/women1.jpg"),
-        require("../../src/assets/images/women/women2.jpg"),
-        require("../../src/assets/images/women/women3.jpg"),
-      ],
-      slides3: [
-        require("../../src/assets/images/kids/kid1.jpg"),
-        require("../../src/assets/images/kids/kid2.jpg"),
-        require("../../src/assets/images/kids/kid3.jpg"),
-      ],
-      slides4: [
-        require("../../src/assets/images/bags/bag1.jpg"),
-        require("../../src/assets/images/bags/bag2.jpg"),
-        require("../../src/assets/images/bags/bag3.jpg"),
-      ],
-      slides5: [
-        require("../../src/assets/images/accessories/acc1.jpg"),
-        require("../../src/assets/images/accessories/acc2.jpg"),
-        require("../../src/assets/images/accessories/acc3.jpg"),
-      ],
-      slides6: [
-        require("../../src/assets/images/shoes/shoes1.jpg"),
-        require("../../src/assets/images/shoes/shoes2.jpg"),
-        require("../../src/assets/images/shoes/shoes3.jpg"),
-      ],
       categories: [
         {
           id: 1,
@@ -615,7 +585,7 @@ export default {
           positions: ["Database", "Devops"],
           text:
             "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid nihil beatae temporibus assumenda delectus sit",
-          image: require("../../src/assets/images/hero-image-4.jpg"),
+          image: require("../../src/assets/images/teams/saimai.jpg"),
           show: true,
         },
         {
@@ -625,7 +595,7 @@ export default {
           positions: ["UX/UI", "Front-end"],
           text:
             "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid nihil beatae temporibus assumenda delectus sit",
-          image: require("../../src/assets/images/hero-image-4.jpg"),
+          image: require("../../src/assets/images/teams/deep.jpg"),
           show: false,
         },
         {
@@ -635,7 +605,7 @@ export default {
           positions: ["Backend"],
           text:
             "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid nihil beatae temporibus assumenda delectus sit",
-          image: require("../../src/assets/images/hero-image-4.jpg"),
+          image: require("../../src/assets/images/teams/phaeng.jpg"),
           show: false,
         },
       ],
