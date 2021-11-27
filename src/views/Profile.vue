@@ -660,7 +660,7 @@ export default {
             if (res.status !== 200) {
               this.failedToEdit = true;
             } else {
-              this.$router.go("/profile");
+              this.$router.replace("/profile");
             }
           })
           .catch((err) => console.log(err));
@@ -929,7 +929,7 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   word-spacing: 0.4rem;
-  text-align: center;
+  text-align: start;
   line-height: 1.2;
   padding-top: 8rem;
 }
@@ -1259,7 +1259,7 @@ label span {
   .profile-container {
     margin: 0;
     width: 100%;
-    height: 100vh;
+    height: auto;
     position: absolute;
     transform: translateY(-7rem);
   }

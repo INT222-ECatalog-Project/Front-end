@@ -787,9 +787,11 @@ export default {
   background-color: #fff;
   width: 36rem;
   height: 3.2rem;
+  border-radius: .4rem;
 }
 select {
   height: 3.2rem !important;
+  border-radius: .4rem;
 }
 
 .search input:focus {
@@ -1097,6 +1099,7 @@ select {
   position: absolute;
   padding: 1.6rem;
   width: 16rem;
+  border-radius: .4rem;
 }
 .filter-hover:hover {
   display: block;

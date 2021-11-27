@@ -100,7 +100,7 @@
           </div>
           <div class="button">
             <router-link class="btn btn--full" to="/sign-up">Get yours</router-link>
-            <a href="#" class="btn btn--ghost">Learn more &darr;</a>
+            <a href="#arrivals" class="btn btn--ghost">Learn more &darr;</a>
           </div>
         </div>
       </div>

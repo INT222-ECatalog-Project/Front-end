@@ -740,21 +740,21 @@ export default {
           return (
             // user.account_id != this.account_id &&
             user.role_id == this.selectedRole &&
-            user.username.toLowerCase().includes(this.searchInput)
+            user.username.toLowerCase().includes(this.searchInput.toLowerCase())
           );
         });
       } else if (this.selectedRole) {
         return this.$store.getters.getAccounts.filter((user) => {
           return (
-            user.role_id == this.selectedRole &&
-            user.account_id != this.account_id
+            user.role_id == this.selectedRole 
+            // user.account_id != this.account_id
           );
         });
       } else if (this.searchInput) {
         return this.$store.getters.getAccounts.filter((user) => {
           return (
-            user.username.toLowerCase().includes(this.searchInput) &&
-            user.account_id != this.account_id
+            user.username.toLowerCase().includes(this.searchInput.toLowerCase())
+            // user.account_id != this.account_id
           );
         });
       }
@@ -972,6 +972,7 @@ export default {
   background-color: #fff;
   font-size: 1.4rem;
   font-weight: 300;
+  border-radius: .4rem;
 }
 
 .filter .role-filter {
