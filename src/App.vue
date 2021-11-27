@@ -137,7 +137,7 @@ export default {
     return JSON.parse(jsonPayload);
 }
   },
-    computed: mapGetters(["getWishList"]),
+  computed: mapGetters(["getWishList"]),
   computed: {
     getAllWishlist() {
       return this.$store.getters.getWishList;
@@ -147,34 +147,20 @@ export default {
           return this.parseJwt((JSON.parse(localStorage.getItem("user")).token));
       }
       return false;
-      // console.log(this.state);
     },
     isAdmin() {
-      // if (this.currentUser && this.currentUser["role"] == 1) {
-      //   return true;
-      // }
-      // return false;
-      // console.log(this.currentUser);
       if (this.currentUser && this.currentUser.role_id == 1) {
         return true;
       }
       return false;
     },
     isDeputyAdmin() {
-      // if (this.currentUser && this.currentUser["role"] == 2) {
-      //   return true;
-      // }
-      // return false;
       if (this.currentUser && this.currentUser.role_id == 2) {
         return true;
       }
       return false;
     },
     isMember() {
-      // if (this.currentUser && this.currentUser["role"] == 3) {
-      //   return true;
-      // }
-      // return false;
       if (this.currentUser && this.currentUser.role_id == 3) {
         return true;
       }
