@@ -80,7 +80,6 @@
               }}
               <br />
               <div class="wrapper">
-                <!-- :style="cssVar" -->
                 <span class="typing-demo" :style="cssVar">{{
                   bgImages[cursorBgImage].textSpan
                 }}</span>
@@ -95,8 +94,8 @@
                 : {},
             ]"
           >
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Asperiores
-            ut dignissimos quia consequuntur animi beatae!
+          NerdyStyle is a cloth catalog, 
+          which includes many cooperated high-end brands such as UNIQLO, CC-OO, ZARA, and H&amp;M.
           </div>
           <div class="button">
             <router-link class="btn btn--full" to="/sign-up">Get yours</router-link>
