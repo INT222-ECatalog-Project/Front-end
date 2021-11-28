@@ -1011,6 +1011,9 @@ select {
 
 /* below 470px */
 @media (max-width: 29em) {
+  .search input {
+    max-width: 26rem;
+  }
   .filter-brand {
     display: none;
   }
