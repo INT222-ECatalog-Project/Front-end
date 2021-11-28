@@ -52,9 +52,9 @@
             Our online store is open
           </div>
           <div class="box-text">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Id totam
-            soluta obcaecati consequuntur aliquam doloribus quam nostrum
-            perferendis sunt enim.
+            Refresh your daily rotation with our clothing range. With the
+            freshest styles available all in one place, you can expect everyday
+            basics. Plans to go out?
           </div>
           <div class="app-button">
             <a href="#" class="btn btn--ghost">Read more</a>
@@ -132,11 +132,46 @@
               </div>
               <div class="filter-hover">
                 <ul>
-                  <li @click="toggleSortDefault" :style="[sortDefault ? {color:'#eb435f'}:{color:'#555'}]">Default</li>
-                  <li @click="toggleSortLatestDate" :style="[sortLatest ? {color:'#eb435f'}:{color:'#555'}]">Latest-Oldest</li>
-                  <li @click="toggleSortOldestDate" :style="[sortOldest ? {color:'#eb435f'}:{color:'#555'}]">Oldest-Latest</li>
-                  <li @click="toggleSortExpensive" :style="[sortExpensive ? {color:'#eb435f'}:{color:'#555'}]">High-Eco</li>
-                  <li @click="toggleSortCheap" :style="[sortCheap ? {color:'#eb435f'}:{color:'#555'}]">Eco-High</li>
+                  <li
+                    @click="toggleSortDefault"
+                    :style="[
+                      sortDefault ? { color: '#eb435f' } : { color: '#555' },
+                    ]"
+                  >
+                    Default
+                  </li>
+                  <li
+                    @click="toggleSortLatestDate"
+                    :style="[
+                      sortLatest ? { color: '#eb435f' } : { color: '#555' },
+                    ]"
+                  >
+                    Latest-Oldest
+                  </li>
+                  <li
+                    @click="toggleSortOldestDate"
+                    :style="[
+                      sortOldest ? { color: '#eb435f' } : { color: '#555' },
+                    ]"
+                  >
+                    Oldest-Latest
+                  </li>
+                  <li
+                    @click="toggleSortExpensive"
+                    :style="[
+                      sortExpensive ? { color: '#eb435f' } : { color: '#555' },
+                    ]"
+                  >
+                    High-Eco
+                  </li>
+                  <li
+                    @click="toggleSortCheap"
+                    :style="[
+                      sortCheap ? { color: '#eb435f' } : { color: '#555' },
+                    ]"
+                  >
+                    Eco-High
+                  </li>
                 </ul>
               </div>
             </div>
@@ -227,7 +262,7 @@ export default {
   },
   data() {
     return {
-      sortDefault:true,
+      sortDefault: true,
       sortLatest: false,
       sortOldest: false,
       sortExpensive: false,
@@ -419,17 +454,16 @@ export default {
     queryProducts() {
       this.current = 1;
       if (this.sortDefault) {
-        return this.products
-          .filter((product) => {
-            return (
-              product != this.handleDelete &&
-              product.brand.brand_name
-                .toLowerCase()
-                .includes(this.selectedBrand.toLowerCase()) &&
-              product.product_name.toLowerCase().includes(this.searchInput) &&
-              product.category.category_name.includes(this.selectedCategory)
-            );
-          })
+        return this.products.filter((product) => {
+          return (
+            product != this.handleDelete &&
+            product.brand.brand_name
+              .toLowerCase()
+              .includes(this.selectedBrand.toLowerCase()) &&
+            product.product_name.toLowerCase().includes(this.searchInput) &&
+            product.category.category_name.includes(this.selectedCategory)
+          );
+        });
       }
       if (this.sortLatest) {
         return this.products
@@ -787,11 +821,11 @@ export default {
   background-color: #fff;
   width: 36rem;
   height: 3.2rem;
-  border-radius: .4rem;
+  border-radius: 0.4rem;
 }
 select {
   height: 3.2rem !important;
-  border-radius: .4rem;
+  border-radius: 0.4rem;
 }
 
 .search input:focus {
@@ -1102,7 +1136,7 @@ select {
   position: absolute;
   padding: 1.6rem;
   width: 16rem;
-  border-radius: .4rem;
+  border-radius: 0.4rem;
 }
 .filter-hover:hover {
   display: block;
