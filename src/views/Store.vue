@@ -205,6 +205,7 @@
             <Card
               v-for="(product, index) in queryProducts"
               :key="product.product_id"
+              :style="[new Date(product.release_date) > getDate ? {opacity:'0.5'}:{opacity:'1'}]"
               :product="product"
               @deleteProduct="handleDelete"
               @toggleWishList="addWishList"
@@ -427,6 +428,10 @@ export default {
     "getCategories",
   ]),
   computed: {
+    getDate() {
+      let date = new Date();
+      return date;
+    },
     currentUser() {
       if (localStorage.getItem("user")) {
         return jwtDecrypt(JSON.parse(localStorage.getItem("user")).token);
@@ -435,6 +440,18 @@ export default {
     },
     isAdmin() {
       if (this.currentUser && this.currentUser.role_id == 1) {
+        return true;
+      }
+      return false;
+    },
+    isDeputy() {
+      if (this.currentUser && this.currentUser.role_id == 2) {
+        return true;
+      }
+      return false;
+    },
+    isMember() {
+      if (this.currentUser && this.currentUser.role_id == 3) {
         return true;
       }
       return false;
@@ -453,21 +470,92 @@ export default {
     },
     queryProducts() {
       this.current = 1;
-      if (this.sortDefault) {
-        return this.products.filter((product) => {
-          return (
-            product != this.handleDelete &&
-            product.brand.brand_name
-              .toLowerCase()
-              .includes(this.selectedBrand.toLowerCase()) &&
-            product.product_name.toLowerCase().includes(this.searchInput) &&
-            product.category.category_name.includes(this.selectedCategory)
-          );
-        });
+      if (this.isMember || this.currentUser == false) {
+        if (this.sortDefault) {
+          return this.products.filter((product) => {
+            return (
+              new Date(product.release_date) < this.getDate &&
+              product != this.handleDelete &&
+              product.brand.brand_name
+                .toLowerCase()
+                .includes(this.selectedBrand.toLowerCase()) &&
+              product.product_name.toLowerCase().includes(this.searchInput) &&
+              product.category.category_name.includes(this.selectedCategory)
+            );
+          });
+        }
+        if (this.sortLatest) {
+          return this.products
+            .filter((product) => {
+              return (
+                new Date(product.release_date) < this.getDate &&
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return new Date(b.release_date) - new Date(a.release_date);
+            });
+        }
+        if (this.sortOldest) {
+          return this.products
+            .filter((product) => {
+              return (
+                new Date(product.release_date) < this.getDate &&
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return new Date(a.release_date) - new Date(b.release_date);
+            });
+        }
+        if (this.sortExpensive) {
+          return this.products
+            .filter((product) => {
+              return (
+                new Date(product.release_date) < this.getDate &&
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return parseFloat(b.price) - parseFloat(a.price);
+            });
+        }
+        if (this.sortCheap) {
+          return this.products
+            .filter((product) => {
+              return (
+                new Date(product.release_date) < this.getDate &&
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return parseFloat(a.price) - parseFloat(b.price);
+            });
+        }
       }
-      if (this.sortLatest) {
-        return this.products
-          .filter((product) => {
+      if (this.isAdmin || this.isDeputy) {
+        if (this.sortDefault) {
+          return this.products.filter((product) => {
             return (
               product != this.handleDelete &&
               product.brand.brand_name
@@ -476,58 +564,72 @@ export default {
               product.product_name.toLowerCase().includes(this.searchInput) &&
               product.category.category_name.includes(this.selectedCategory)
             );
-          })
-          .sort((a, b) => {
-            return new Date(b.release_date) - new Date(a.release_date);
           });
-      }
-      if (this.sortOldest) {
-        return this.products
-          .filter((product) => {
-            return (
-              product != this.handleDelete &&
-              product.brand.brand_name
-                .toLowerCase()
-                .includes(this.selectedBrand.toLowerCase()) &&
-              product.product_name.toLowerCase().includes(this.searchInput) &&
-              product.category.category_name.includes(this.selectedCategory)
-            );
-          })
-          .sort((a, b) => {
-            return new Date(a.release_date) - new Date(b.release_date);
-          });
-      }
-      if (this.sortExpensive) {
-        return this.products
-          .filter((product) => {
-            return (
-              product != this.handleDelete &&
-              product.brand.brand_name
-                .toLowerCase()
-                .includes(this.selectedBrand.toLowerCase()) &&
-              product.product_name.toLowerCase().includes(this.searchInput) &&
-              product.category.category_name.includes(this.selectedCategory)
-            );
-          })
-          .sort((a, b) => {
-            return parseFloat(b.price) - parseFloat(a.price);
-          });
-      }
-      if (this.sortCheap) {
-        return this.products
-          .filter((product) => {
-            return (
-              product != this.handleDelete &&
-              product.brand.brand_name
-                .toLowerCase()
-                .includes(this.selectedBrand.toLowerCase()) &&
-              product.product_name.toLowerCase().includes(this.searchInput) &&
-              product.category.category_name.includes(this.selectedCategory)
-            );
-          })
-          .sort((a, b) => {
-            return parseFloat(a.price) - parseFloat(b.price);
-          });
+        }
+        if (this.sortLatest) {
+          return this.products
+            .filter((product) => {
+              return (
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return new Date(b.release_date) - new Date(a.release_date);
+            });
+        }
+        if (this.sortOldest) {
+          return this.products
+            .filter((product) => {
+              return (
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return new Date(a.release_date) - new Date(b.release_date);
+            });
+        }
+        if (this.sortExpensive) {
+          return this.products
+            .filter((product) => {
+              return (
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return parseFloat(b.price) - parseFloat(a.price);
+            });
+        }
+        if (this.sortCheap) {
+          return this.products
+            .filter((product) => {
+              return (
+                product != this.handleDelete &&
+                product.brand.brand_name
+                  .toLowerCase()
+                  .includes(this.selectedBrand.toLowerCase()) &&
+                product.product_name.toLowerCase().includes(this.searchInput) &&
+                product.category.category_name.includes(this.selectedCategory)
+              );
+            })
+            .sort((a, b) => {
+              return parseFloat(a.price) - parseFloat(b.price);
+            });
+        }
       }
     },
     pageTotal() {
@@ -1123,6 +1225,7 @@ select {
 }
 .filter-more:hover + .filter-hover {
   display: block;
+  z-index: 999;
 }
 .filter-more .fa-filter {
   color: #fff;
@@ -1137,6 +1240,7 @@ select {
   padding: 1.6rem;
   width: 16rem;
   border-radius: 0.4rem;
+    z-index: 999;
 }
 .filter-hover:hover {
   display: block;
