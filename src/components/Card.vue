@@ -159,7 +159,7 @@ export default {
 .icon {
   width: 3.6rem;
   height: 3.6rem;
-  z-index: 999;
+  z-index: 100;
   position: absolute;
   top: 0%;
   right: 0%;

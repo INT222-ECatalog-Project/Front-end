@@ -657,13 +657,14 @@ export default {
   computed: {
     getAllproducts() {
       this.$store.getters.getProducts.sort( ( a, b) => {
-            return new Date(b.release_date) - new Date(a.release_date);
+            return ((new Date(b.release_date) - new Date(a.release_date)));
         });
       return this.$store.getters.getProducts;
     },
     getShirts() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[0].text.toLowerCase()
         );
@@ -672,6 +673,7 @@ export default {
     getSweaters() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[1].text.toLowerCase()
         );
@@ -680,6 +682,7 @@ export default {
     getJackets() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[2].text.toLowerCase()
         );
@@ -688,6 +691,7 @@ export default {
     getCoats() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[3].text.toLowerCase()
         );
@@ -696,6 +700,7 @@ export default {
     getPants() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[4].text.toLowerCase()
         );
@@ -704,6 +709,7 @@ export default {
     getDresses() {
       return this.getAllproducts.filter((product) => {
         return (
+          (new Date(product.release_date) <= new Date()) &&
           product.category.category_name.toLowerCase() ==
           this.categories[5].text.toLowerCase()
         );

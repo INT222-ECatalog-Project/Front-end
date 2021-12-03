@@ -33,7 +33,7 @@
               {{ product.product_name }}
               <span class="brand">{{ brand }}</span>
             </div>
-            <div class="prod_date">({{ date.toString().split("T")[0] }})</div>
+            <div class="prod_date">({{ date.toString().split("T")[0] }}) <span :style="{color:'red'}" v-if="getDate">Not released yet</span></div>
             <div class="prod_price">฿{{ product.price }}</div>
             <div class="prod_colors">
               <div
@@ -226,6 +226,12 @@ export default {
       }
       return false;
     },
+    getDate() {
+      if (new Date(this.date) > new Date() ) {
+        return true;
+      }
+      return false;
+    }
   },
   mounted() {
     this.href = window.location.href;
@@ -242,6 +248,9 @@ export default {
         this.product = data.data;
         this.brand = data.data.brand.brand_name;
         this.date = data.data.release_date;
+        if (new Date(this.date) > new Date() && (this.currentUser == false || this.isMember) ) {
+          this.$router.replace("/stores")
+        }
       })
       .catch((err) => console.log(err.message));
     if (this.isMember) {
