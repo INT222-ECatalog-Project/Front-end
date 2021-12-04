@@ -723,8 +723,14 @@ export default {
   },
   computed: mapGetters(["getProfile", "getProducts"]),
   computed: {
+    getDate() {
+      let date = new Date();
+      return date;
+    },
     getAllproducts() {
-      const shuffled = this.$store.getters.getProducts.sort(
+      const shuffled = this.$store.getters.getProducts.filter((product) => {
+        return new Date(product.release_date) < this.getDate 
+      }).sort(
         () => 0.5 - Math.random()
       );
       return shuffled.slice(0, 2);

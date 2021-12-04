@@ -133,6 +133,7 @@
               <div class="filter-hover">
                 <ul>
                   <li
+                  class="hover-underline-animation"
                     @click="toggleSortDefault"
                     :style="[
                       sortDefault ? { color: '#eb435f' } : { color: '#555' },
@@ -1240,7 +1241,8 @@ select {
   padding: 1.6rem;
   width: 16rem;
   border-radius: 0.4rem;
-    z-index: 999;
+  z-index: 999;
+  overflow: hidden;
 }
 .filter-hover:hover {
   display: block;
@@ -1250,20 +1252,43 @@ select {
   display: flex;
   gap: 2rem;
   flex-direction: column;
-  margin-top: 1rem;
+  margin-top: 0.2rem;
 }
 .filter-hover ul li {
   text-align: center;
   font-size: 1.4rem;
   border-bottom: 1px solid rgb(225, 225, 225);
   padding-bottom: 1.6rem;
-  transition: 0.15s all ease-in-out;
+  transition: 0.25s all ease-in-out;
   cursor: pointer;
+  color: #555;
 }
 .filter-hover ul li:hover {
   color: #333;
+  text-decoration: underline;
 }
 .filter-hover ul li:last-child {
   border-bottom: none;
+}
+.hover-underline-animation:hover {
+  color: #eb435f;
+  transition: transform 0.25s ease-in-out;
+}
+.filter-hover ul li:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 0.2rem;
+  bottom: 0;
+  left: 0;
+  background-color: #eb435f;
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.filter-hover ul li:hover:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }
 </style>
