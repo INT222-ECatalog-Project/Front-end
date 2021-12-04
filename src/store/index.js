@@ -4,11 +4,9 @@ import { auth } from "./auth.module";
 import authHeader from "../services/auth-header";
 let user = JSON.parse(localStorage.getItem("user"));
 const BASE_URL = "https://www.clothshop.company/backend/api";
-// const BASE_URL = "http://localhost:9000/api";
 export default createStore({
   state: {
     defaultUrl: "https://www.clothshop.company/backend/api",
-    // defaultUrl: "http://localhost:9000/api",
     products: [],
     colors: [],
     brands: [],
@@ -330,7 +328,14 @@ export default createStore({
       fetch(this.state.colorUrl + "/" + id, {
         headers: authHeader(),
         method: "DELETE",
-      }).catch((err) => console.log(err.message));
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.replace("/sign-up");
+        }
+      })
+      .catch((err) => console.log(err.message));
       context.commit("DELETE_COLOR", id);
     },
 
@@ -397,7 +402,15 @@ export default createStore({
       fetch(this.state.brandUrl + "/" + id, {
         method: "DELETE",
         headers: authHeader(),
-      }).catch((err) => console.log(err.message));
+      })
+      .then((res) => {
+        if (res.status == 400) {
+          this.dispatch("auth/logout")
+          router.replace("/sign-up");
+        }
+        return res.json()
+      })
+      .catch((err) => console.log(err.message));
       context.commit("DELETE_BRAND", id);
     },
     editBrand(context, editBrand) {
@@ -444,7 +457,7 @@ export default createStore({
         .then((res) => {
           if (res.status == 400) {
             this.dispatch("auth/logout")
-            // router.push("/");
+            router.replace("/sign-up");
           }
           return res.json()
         })

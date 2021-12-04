@@ -171,6 +171,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Shirts"
@@ -189,6 +190,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Sweaters"
@@ -207,6 +209,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Jackets"
@@ -225,6 +228,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Coats"
@@ -243,6 +247,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Pants"
@@ -261,6 +266,7 @@
                     :key="slide.product_id"
                   >
                     <img
+                      :style="{cursor:'pointer'}"
                       @click="goToProductPage(slide.product_id)"
                       :src="urlImages + slide.product_id"
                       alt="Product Images for Pants"
