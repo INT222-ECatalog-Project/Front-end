@@ -34,9 +34,13 @@
                           pointerEvents: 'none',
                         },
                   ]">
-      <div class="add-to-cart">
+      <div class="add-to-cart" v-if="$route.name != 'WishList'">
         Add to wishlist
         <i class="fas fa-plus"></i>
+      </div>
+      <div v-if="$route.name == 'WishList'" class="add-to-cart">
+        Remove wishlist
+        <i class="fas fa-trash"></i>
       </div>
     </div>
     <div class="product-info" v-if="$route.name != 'Profile'">
