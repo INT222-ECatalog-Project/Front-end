@@ -191,7 +191,7 @@
                     <td v-if="isAdmin">
                       <div
                         class="delete"
-                        @click="deleteColorById(color.color_id)"
+                        @click="deleteColorById(color)"
                         :style="{ display: 'inline' }"
                       >
                         Delete
@@ -295,7 +295,7 @@
                     <td v-if="isAdmin">
                       <div
                         class="delete"
-                        @click="deleteBrandById(brand.brand_id)"
+                        @click="deleteBrandById(brand)"
                         :style="{ display: 'inline' }"
                       >
                         Delete
@@ -525,14 +525,20 @@ export default {
         this.failedToAdd = true;
       }
     },
-    deleteColorById(id) {
+    deleteColorById(Color) {
       if (confirm("Do you really want to delete? 👹")) {
         const index = this.getAllColors.findIndex(
-          (color) => color.color_id == id
+          (color) => color.color_id == Color.color_id
         );
         if (index !== -1) {
           this.getAllColors.splice(index, 1);
-          this.$store.dispatch("deleteColor", id);
+          this.$store.dispatch("deleteColor", Color.color_id);
+          this.successData = "Deleting color " + Color.color_code;
+          this.successToAdd = true;
+          setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
         }
       }
     },
@@ -594,14 +600,20 @@ export default {
         this.failedToAdd = true;
       }
     },
-    deleteBrandById(id) {
+    deleteBrandById(Brand) {
       if (confirm("Do you really want to delete? 👹")) {
         const index = this.getAllBrands.findIndex(
-          (brand) => brand.brand_id == id
+          (brand) => brand.brand_id == Brand.brand_id
         );
         if (index !== -1) {
           this.getAllBrands.splice(index, 1);
-          this.$store.dispatch("deleteBrand", id);
+          this.$store.dispatch("deleteBrand", Brand.brand_id);
+          this.successData = "Deleting brand " + Brand.brand_name;
+          this.successToAdd = true;
+          setTimeout(
+          () => ((this.successToAdd = false), (this.successData = "")),
+          2500
+        );
         }
       }
     },

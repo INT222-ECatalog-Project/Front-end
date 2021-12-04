@@ -106,7 +106,7 @@
             <span>Twitter</span>
           </a>
           <a href="" class="button">
-            <i class="icon fab fa-instagram-square"></i>
+            <i class="icon fab fa-instagram" :style="{ color: '#C13584' }"></i>
             <span>Instagram</span>
           </a>
           <a href="" class="button">
