@@ -34,7 +34,7 @@
               />
             </div>
             <div class="input-password">
-              <label for="password">Password</label>
+              <label for="password-sign-in">Password</label>
               <div class="show-hide-passwod">
                 <input
                   :type="type"
@@ -197,7 +197,7 @@
               />
             </div>
             <div class="input-password">
-              <label for="password"
+              <label for="password-sign-up"
                 >Password
                 <span v-if="!signUpPasswordIsValid"
                   >*required at least 8 chars</span

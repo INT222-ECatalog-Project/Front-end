@@ -739,6 +739,7 @@ input {
   height: 2.8rem;
   padding: 0.4rem 0.6rem;
   color: #333;
+  border-radius: 0.4rem;
 }
 input:focus {
   outline: none;
