@@ -660,7 +660,7 @@ export default {
             if (res.status !== 200) {
               this.failedToEdit = true;
             } else {
-              this.$router.replace("/profile");
+              this.$router.push("/profile");
             }
           })
           .catch((err) => console.log(err));
