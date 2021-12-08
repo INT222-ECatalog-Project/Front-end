@@ -102,7 +102,7 @@
                   @toggleWishList="addWishList"
                   @toggleWishListDelete="deleteWishList"
                 ></Card>
-                <div class="seemore">
+                <div class="seemore" @click="$router.push('/stores')">
                   <p class="hover-underline-animation">see more &#8594;</p>
                 </div>
               </div>
